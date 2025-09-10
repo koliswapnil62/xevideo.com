@@ -1,20 +1,265 @@
-<form action="https://formspree.io/f/mvgblbel" method="POST">
-  <h3>Registration Form</h3>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>YourSite — Clean Modern Landing</title>
+  <meta name="description" content="A clean, responsive landing page template. Replace text and images to match your brand." />
 
-  <label for="name">Full Name / Company Name:</label>
-  <input type="text" id="name" name="name" required>
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <label for="email">Email Address:</label>
-  <input type="email" id="email" name="email" required>
+  <style>
+    :root{
+      --bg: #0f1724;
+      --card: #0b1220;
+      --muted: #93a3c6;
+      --accent: linear-gradient(90deg,#6ee7b7,#60a5fa);
+      --glass: rgba(255,255,255,0.03);
+      --radius: 14px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      background: linear-gradient(180deg,#041028 0%, #07122a 100%);
+      color:#e6eef8;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+      padding-bottom:40px;
+    }
 
-  <label for="type">Registering as:</label>
-  <select id="type" name="type">
-    <option value="individual">Individual</option>
-    <option value="company">Company</option>
-  </select>
+    /* container */
+    .wrap{
+      max-width:1100px;
+      margin:36px auto;
+      padding:28px;
+    }
 
-  <!-- Hidden subject line for emails -->
-  <input type="hidden" name="_subject" value="New Auction Registration - xevideo.com">
+    /* header / nav */
+    .nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+      margin-bottom:28px;
+    }
+    .brand{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      text-decoration:none;
+      color:inherit;
+    }
+    .logo{
+      width:44px;height:44px;border-radius:10px;
+      background:var(--accent);display:flex;align-items:center;justify-content:center;
+      font-weight:700;color:#001;
+      box-shadow:0 6px 18px rgba(2,6,23,0.6);
+    }
+    .nav-right{display:flex;gap:12px;align-items:center;}
+    .btn{
+      padding:10px 16px;border-radius:10px;font-weight:600;background:transparent;border:1px solid rgba(255,255,255,0.06);
+      cursor:pointer;color:inherit;text-decoration:none;
+    }
+    .btn.primary{
+      background:linear-gradient(90deg,#22c55e,#3b82f6);
+      color:#04202a;border:0;box-shadow:0 8px 30px rgba(59,130,246,0.12);
+    }
 
-  <button type="submit">Complete Registration</button>
-</form>
+    /* hero */
+    .hero{
+      display:grid;
+      grid-template-columns:1fr 420px;
+      gap:28px;
+      align-items:center;
+      margin-bottom:28px;
+    }
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow: 0 6px 30px rgba(2,8,20,0.6);
+    }
+    .hero h1{
+      margin:0 0 12px 0;
+      font-size:32px;
+      letter-spacing:-0.4px;
+    }
+    .lead{color:var(--muted);margin-bottom:18px;}
+    .cta-row{display:flex;gap:12px;flex-wrap:wrap}
+    .stats{display:flex;gap:12px;margin-top:18px}
+    .stat{background:var(--glass);padding:10px 14px;border-radius:10px;text-align:center;min-width:84px}
+
+    /* preview card */
+    .preview{
+      height:320px;border-radius:12px;overflow:hidden;background:
+      linear-gradient(135deg,#07102a,#081226);
+      display:flex;align-items:center;justify-content:center;color:var(--muted);
+      border:1px solid rgba(255,255,255,0.03);
+    }
+    .preview img{max-width:100%;height:auto;display:block;}
+
+    /* features */
+    .grid3{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:18px;
+      margin-top:22px;
+    }
+    .feature{padding:16px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border:1px solid rgba(255,255,255,0.03)}
+    .feature h3{margin:0 0 8px 0;font-size:16px}
+    .feature p{margin:0;color:var(--muted);font-size:14px}
+
+    /* gallery */
+    .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+    .tile{height:120px;border-radius:10px;background:var(--glass);display:flex;align-items:center;justify-content:center;color:var(--muted);}
+
+    /* footer */
+    footer{margin-top:32px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+    .small{font-size:13px}
+
+    /* responsive */
+    @media (max-width:980px){
+      .hero{grid-template-columns:1fr; padding-bottom:12px}
+      .wrap{padding:18px}
+      .grid3{grid-template-columns:repeat(2,1fr)}
+      .gallery{grid-template-columns:repeat(2,1fr)}
+      .preview{height:260px}
+    }
+    @media (max-width:560px){
+      .grid3{grid-template-columns:1fr}
+      .gallery{grid-template-columns:1fr}
+      .nav{flex-direction:column;align-items:flex-start;gap:10px}
+      .nav-right{width:100%;justify-content:space-between}
+      .preview{height:200px}
+    }
+
+    /* subtle hover */
+    .feature:hover{transform:translateY(-6px);transition:all .25s ease}
+    .tile:hover{transform:scale(1.02);transition:all .2s ease}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="nav">
+      <a class="brand" href="#">
+        <div class="logo">YS</div>
+        <div>
+          <div style="font-weight:700">YourSite</div>
+          <div style="font-size:12px;color:var(--muted)">Clean. Fast. Minimal.</div>
+        </div>
+      </a>
+
+      <div class="nav-right">
+        <nav style="display:flex;gap:12px;align-items:center">
+          <a class="btn" href="#features">Features</a>
+          <a class="btn" href="#gallery">Gallery</a>
+          <a class="btn" href="#contact">Contact</a>
+        </nav>
+        <a class="btn primary" href="#get">Get Started</a>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="card">
+        <h1>Beautiful, responsive landing — ready to use</h1>
+        <p class="lead">Fast, modern HTML template. Replace text, colors and images to match your brand. Lightweight and mobile-friendly.</p>
+
+        <div class="cta-row">
+          <a class="btn primary" id="get" href="#contact">Start Now</a>
+          <a class="btn" href="#features">See features</a>
+          <a class="btn" href="#" onclick="copyLink()">Copy site link</a>
+        </div>
+
+        <div class="stats" aria-hidden>
+          <div class="stat">
+            <div style="font-weight:700">99%</div>
+            <div style="font-size:12px;color:var(--muted)">Uptime ready</div>
+          </div>
+          <div class="stat">
+            <div style="font-weight:700">320ms</div>
+            <div style="font-size:12px;color:var(--muted)">Avg load</div>
+          </div>
+          <div class="stat">
+            <div style="font-weight:700">10k+</div>
+            <div style="font-size:12px;color:var(--muted)">Users</div>
+          </div>
+        </div>
+
+        <div class="grid3" id="features">
+          <div class="feature">
+            <h3>Responsive layout</h3>
+            <p>Looks great on phones, tablets and desktop without extra work.</p>
+          </div>
+          <div class="feature">
+            <h3>Lightweight</h3>
+            <p>Pure HTML & CSS with tiny JavaScript for interactions only.</p>
+          </div>
+          <div class="feature">
+            <h3>Easy to edit</h3>
+            <p>Colors, images, and copy — change quickly to match your brand.</p>
+          </div>
+        </div>
+      </div>
+
+      <aside class="card preview" aria-hidden>
+        <!-- Replace this image or use your own screenshot -->
+        <div style="text-align:center;padding:18px">
+          <img src="https://via.placeholder.com/380x240.png?text=Preview+Image" alt="preview">
+          <div style="margin-top:12px;color:var(--muted);font-size:13px">Live preview — replace with your screenshot</div>
+        </div>
+      </aside>
+    </section>
+
+    <section>
+      <h2 style="margin:0 0 12px 0">Gallery</h2>
+      <p class="lead" style="margin-top:0">Showcase or screenshots — replace with your own images.</p>
+      <div class="gallery" id="gallery">
+        <div class="tile">Image 1</div>
+        <div class="tile">Image 2</div>
+        <div class="tile">Image 3</div>
+        <div class="tile">Image 4</div>
+        <div class="tile">Image 5</div>
+        <div class="tile">Image 6</div>
+      </div>
+    </section>
+
+    <section style="margin-top:20px" id="contact">
+      <div class="card" style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+        <div style="flex:1;min-width:220px">
+          <h3 style="margin:0 0 8px 0">Get in touch</h3>
+          <p class="small" style="margin:0 0 12px 0;color:var(--muted)">Questions or customizations? Send a message.</p>
+          <p style="margin:0;color:var(--muted)">Email: <a href="mailto:hello@yoursite.com" style="color:inherit;text-decoration:underline">hello@yoursite.com</a></p>
+        </div>
+
+        <form onsubmit="event.preventDefault(); alert('Message sent — replace this behavior with your backend or Form handler');" style="display:flex;gap:8px;min-width:260px">
+          <input type="text" placeholder="Your name" required style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit">
+          <button class="btn primary" type="submit">Send</button>
+        </form>
+      </div>
+    </section>
+
+    <footer>
+      <div class="small">© <span id="year"></span> YourSite • Built with ❤️</div>
+      <div class="small" style="color:var(--muted)">Made responsive — change content as needed</div>
+    </footer>
+  </div>
+
+  <script>
+    // small helpers
+    document.getElementById('year').innerText = new Date().getFullYear();
+
+    function copyLink(){
+      const url = window.location.href;
+      navigator.clipboard?.writeText(url).then(()=> {
+        alert('Link copied: ' + url);
+      }).catch(()=> {
+        prompt('Copy the link manually:', url);
+      });
+    }
+  </script>
+</body>
+</html>
