@@ -1,147 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>xevideo.com - Premium Auction</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #0f0f0f, #1a1a1a);
-      color: #fff;
-      text-align: center;
-    }
-    header {
-      padding: 30px;
-      background: black;
-      color: gold;
-      font-size: 32px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-    .countdown {
-      font-size: 26px;
-      margin: 20px 0;
-      color: #ff5555;
-    }
-    .paypal-btn {
-      margin: 30px;
-    }
-    button {
-      background: gold;
-      color: black;
-      padding: 12px 25px;
-      font-size: 18px;
-      border: none;
-      cursor: pointer;
-      border-radius: 6px;
-    }
-    button:hover {
-      background: orange;
-    }
-    form {
-      margin: 20px auto;
-      max-width: 400px;
-      text-align: left;
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
-    }
-    form h3 {
-      text-align: center;
-      margin-bottom: 15px;
-      color: gold;
-    }
-    input, select {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 5px;
-    }
-    .contact {
-      margin-top: 40px;
-      padding: 20px;
-      background: #111;
-      border-top: 2px solid gold;
-    }
-  </style>
-</head>
-<body>
-  <header>
-    🚀 Premium Auction - xevideo.com
-  </header>
+<form action="https://formspree.io/f/mvgblbel" method="POST">
+  <h3>Registration Form</h3>
 
-  <h2>Domain Auction Starting Price: $500 Million</h2>
-  <div class="countdown" id="timer"></div>
+  <label for="name">Full Name / Company Name:</label>
+  <input type="text" id="name" name="name" required>
 
-  <div class="paypal-btn">
-    <p><strong>Registration Fee: $10 (via PayPal)</strong></p>
-    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
-      <input type="hidden" name="cmd" value="_xclick">
-      <input type="hidden" name="business" value="koli.swapnil62@gmail.com">
-      <input type="hidden" name="item_name" value="xevideo.com Auction Registration">
-      <input type="hidden" name="amount" value="10.00">
-      <input type="hidden" name="currency_code" value="USD">
-      <button type="submit">Pay $10 & Register</button>
-    </form>
-  </div>
+  <label for="email">Email Address:</label>
+  <input type="email" id="email" name="email" required>
 
-  <form>
-    <h3>Registration Form</h3>
-    <label for="name">Full Name / Company Name:</label>
-    <input type="text" id="name" name="name" required>
+  <label for="type">Registering as:</label>
+  <select id="type" name="type">
+    <option value="individual">Individual</option>
+    <option value="company">Company</option>
+  </select>
 
-    <label for="email">Email Address:</label>
-    <input type="email" id="email" name="email" required>
+  <!-- Hidden subject line for emails -->
+  <input type="hidden" name="_subject" value="New Auction Registration - xevideo.com">
 
-    <label for="type">Registering as:</label>
-    <select id="type" name="type">
-      <option value="individual">Individual</option>
-      <option value="company">Company</option>
-    </select>
-
-    <button type="submit">Complete Registration</button>
-  </form>
-
-  <div class="contact">
-    <h3>Contact Details</h3>
-    <p>Email: koli.swapnil62@gmail.com</p>
-    <p>Only serious buyers are allowed. 🚫 No time wasters.</p>
-  </div>
-
-  <script>
-    // Countdown Timer - 7 Days
-    function startCountdown(durationInDays) {
-      const countdownElement = document.getElementById("timer");
-      const endDate = new Date().getTime() + durationInDays * 24 * 60 * 60 * 1000;
-
-      function updateTimer() {
-        const now = new Date().getTime();
-        const distance = endDate - now;
-
-        if (distance <= 0) {
-          countdownElement.innerHTML = "Auction Ended!";
-          clearInterval(interval);
-          return;
-        }
-
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        countdownElement.innerHTML =
-          `Time Left: ${days}d ${hours}h ${minutes}m ${seconds}s`;
-      }
-
-      updateTimer();
-      const interval = setInterval(updateTimer, 1000);
-    }
-
-    // Start 7-day countdown
-    startCountdown(7);
-  </script>
-</body>
-</html>
+  <button type="submit">Complete Registration</button>
+</form>
