@@ -3,23 +3,156 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xevideo</title>
-  <link rel="stylesheet" href="style.css">
+  <title>xevideo.com - Premium Auction</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #0f0f0f, #1a1a1a);
+      color: #fff;
+      text-align: center;
+    }
+    header {
+      padding: 40px;
+      background: black;
+      color: gold;
+      font-size: 28px;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .countdown {
+      font-size: 24px;
+      margin: 20px 0;
+      color: #ffd700;
+    }
+    .details {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+    }
+    button {
+      padding: 15px 30px;
+      font-size: 18px;
+      background: gold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 20px 0;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: orange;
+    }
+    form {
+      display: none;
+      max-width: 600px;
+      margin: 20px auto;
+      padding: 20px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 12px;
+      text-align: left;
+    }
+    form input, form select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+    }
+    .success {
+      display: none;
+      padding: 20px;
+      font-size: 18px;
+      background: rgba(0,255,0,0.2);
+      border-radius: 12px;
+      margin: 20px auto;
+      max-width: 600px;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Welcome to Xevideo</h1>
-    <p>Your site is live on Cloudflare Pages!</p>
-  </header>
-  <main>
-    <section>
-      <h2>About</h2>
-      <p>This is a sample landing page deployed using Cloudflare.</p>
-    </section>
-  </main>
-  <footer>
-    <p>&copy; 2025 Xevideo. All rights reserved.</p>
-  </footer>
-  <script src="script.js"></script>
+
+<header>Exclusive Auction – xevideo.com</header>
+
+<section>
+  <h2>Reserve Price: $500 Million</h2>
+  <div class="countdown" id="countdown">Auction ends in: </div>
+  <div class="details">
+    <p>This is a once-in-a-lifetime opportunity to own the premium domain <b>xevideo.com</b>.</p>
+    <p>Only serious buyers can register by paying a $10 registration fee.</p>
+    <button onclick="goToPayPal()">Register to Bid – $10</button>
+  </div>
+</section>
+
+<form id="registrationForm">
+  <h2>Complete Registration</h2>
+  <label>Full Name</label>
+  <input type="text" required>
+  
+  <label>Email</label>
+  <input type="email" required>
+  
+  <label>Phone</label>
+  <input type="text" required>
+  
+  <label>Type</label>
+  <select required>
+    <option value="Individual">Individual</option>
+    <option value="Company">Company</option>
+  </select>
+  
+  <label>Company Name (if applicable)</label>
+  <input type="text">
+  
+  <button type="submit">Submit Registration</button>
+</form>
+
+<div class="success" id="successMessage">
+  ✅ Registration Complete!<br><br>
+  Contact Seller: <br>
+  <b>Email:</b> koli.swapnil62@gmail.com <br>
+  <b>Domain:</b> xevideo.com <br>
+</div>
+
+<script>
+// Countdown (7 days)
+const endDate = new Date();
+endDate.setDate(endDate.getDate() + 7);
+
+function updateCountdown() {
+  const now = new Date().getTime();
+  const distance = endDate - now;
+
+  if (distance < 0) {
+    document.getElementById("countdown").innerHTML = "Auction Ended";
+    return;
+  }
+
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+  document.getElementById("countdown").innerHTML =
+    "Auction ends in: " + days + "d " + hours + "h " + minutes + "m " + seconds + "s";
+}
+setInterval(updateCountdown, 1000);
+
+// PayPal redirect
+function goToPayPal() {
+  window.open("https://www.paypal.com/paypalme/koliswapnil62/10", "_blank");
+  document.getElementById("registrationForm").style.display = "block";
+}
+
+// Form submission
+document.getElementById("registrationForm").addEventListener("submit", function(e) {
+  e.preventDefault();
+  document.getElementById("registrationForm").style.display = "none";
+  document.getElementById("successMessage").style.display = "block";
+});
+</script>
+
 </body>
 </html>
