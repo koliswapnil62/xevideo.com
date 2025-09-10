@@ -13,146 +13,135 @@
       text-align: center;
     }
     header {
-      padding: 40px;
+      padding: 30px;
       background: black;
       color: gold;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: bold;
       text-transform: uppercase;
     }
     .countdown {
-      font-size: 24px;
+      font-size: 26px;
       margin: 20px 0;
-      color: #ffd700;
+      color: #ff5555;
     }
-    .details {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-      background: rgba(255,255,255,0.05);
-      border-radius: 12px;
+    .paypal-btn {
+      margin: 30px;
     }
     button {
-      padding: 15px 30px;
-      font-size: 18px;
       background: gold;
+      color: black;
+      padding: 12px 25px;
+      font-size: 18px;
       border: none;
-      border-radius: 8px;
       cursor: pointer;
-      margin: 20px 0;
-      transition: 0.3s;
+      border-radius: 6px;
     }
     button:hover {
       background: orange;
     }
     form {
-      display: none;
-      max-width: 600px;
       margin: 20px auto;
-      padding: 20px;
-      background: rgba(0,0,0,0.7);
-      border-radius: 12px;
+      max-width: 400px;
       text-align: left;
+      background: #222;
+      padding: 20px;
+      border-radius: 10px;
     }
-    form input, form select {
+    form h3 {
+      text-align: center;
+      margin-bottom: 15px;
+      color: gold;
+    }
+    input, select {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       margin: 10px 0;
       border: none;
-      border-radius: 6px;
+      border-radius: 5px;
     }
-    .success {
-      display: none;
+    .contact {
+      margin-top: 40px;
       padding: 20px;
-      font-size: 18px;
-      background: rgba(0,255,0,0.2);
-      border-radius: 12px;
-      margin: 20px auto;
-      max-width: 600px;
+      background: #111;
+      border-top: 2px solid gold;
     }
   </style>
 </head>
 <body>
+  <header>
+    🚀 Premium Auction - xevideo.com
+  </header>
 
-<header>Exclusive Auction – xevideo.com</header>
+  <h2>Domain Auction Starting Price: $500 Million</h2>
+  <div class="countdown" id="timer"></div>
 
-<section>
-  <h2>Reserve Price: $500 Million</h2>
-  <div class="countdown" id="countdown">Auction ends in: </div>
-  <div class="details">
-    <p>This is a once-in-a-lifetime opportunity to own the premium domain <b>xevideo.com</b>.</p>
-    <p>Only serious buyers can register by paying a $10 registration fee.</p>
-    <button onclick="goToPayPal()">Register to Bid – $10</button>
+  <div class="paypal-btn">
+    <p><strong>Registration Fee: $10 (via PayPal)</strong></p>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank">
+      <input type="hidden" name="cmd" value="_xclick">
+      <input type="hidden" name="business" value="koli.swapnil62@gmail.com">
+      <input type="hidden" name="item_name" value="xevideo.com Auction Registration">
+      <input type="hidden" name="amount" value="10.00">
+      <input type="hidden" name="currency_code" value="USD">
+      <button type="submit">Pay $10 & Register</button>
+    </form>
   </div>
-</section>
 
-<form id="registrationForm">
-  <h2>Complete Registration</h2>
-  <label>Full Name</label>
-  <input type="text" required>
-  
-  <label>Email</label>
-  <input type="email" required>
-  
-  <label>Phone</label>
-  <input type="text" required>
-  
-  <label>Type</label>
-  <select required>
-    <option value="Individual">Individual</option>
-    <option value="Company">Company</option>
-  </select>
-  
-  <label>Company Name (if applicable)</label>
-  <input type="text">
-  
-  <button type="submit">Submit Registration</button>
-</form>
+  <form>
+    <h3>Registration Form</h3>
+    <label for="name">Full Name / Company Name:</label>
+    <input type="text" id="name" name="name" required>
 
-<div class="success" id="successMessage">
-  ✅ Registration Complete!<br><br>
-  Contact Seller: <br>
-  <b>Email:</b> koli.swapnil62@gmail.com <br>
-  <b>Domain:</b> xevideo.com <br>
-</div>
+    <label for="email">Email Address:</label>
+    <input type="email" id="email" name="email" required>
 
-<script>
-// Countdown (7 days)
-const endDate = new Date();
-endDate.setDate(endDate.getDate() + 7);
+    <label for="type">Registering as:</label>
+    <select id="type" name="type">
+      <option value="individual">Individual</option>
+      <option value="company">Company</option>
+    </select>
 
-function updateCountdown() {
-  const now = new Date().getTime();
-  const distance = endDate - now;
+    <button type="submit">Complete Registration</button>
+  </form>
 
-  if (distance < 0) {
-    document.getElementById("countdown").innerHTML = "Auction Ended";
-    return;
-  }
+  <div class="contact">
+    <h3>Contact Details</h3>
+    <p>Email: koli.swapnil62@gmail.com</p>
+    <p>Only serious buyers are allowed. 🚫 No time wasters.</p>
+  </div>
 
-  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  <script>
+    // Countdown Timer - 7 Days
+    function startCountdown(durationInDays) {
+      const countdownElement = document.getElementById("timer");
+      const endDate = new Date().getTime() + durationInDays * 24 * 60 * 60 * 1000;
 
-  document.getElementById("countdown").innerHTML =
-    "Auction ends in: " + days + "d " + hours + "h " + minutes + "m " + seconds + "s";
-}
-setInterval(updateCountdown, 1000);
+      function updateTimer() {
+        const now = new Date().getTime();
+        const distance = endDate - now;
 
-// PayPal redirect
-function goToPayPal() {
-  window.open("https://www.paypal.com/paypalme/koliswapnil62/10", "_blank");
-  document.getElementById("registrationForm").style.display = "block";
-}
+        if (distance <= 0) {
+          countdownElement.innerHTML = "Auction Ended!";
+          clearInterval(interval);
+          return;
+        }
 
-// Form submission
-document.getElementById("registrationForm").addEventListener("submit", function(e) {
-  e.preventDefault();
-  document.getElementById("registrationForm").style.display = "none";
-  document.getElementById("successMessage").style.display = "block";
-});
-</script>
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
+        countdownElement.innerHTML =
+          `Time Left: ${days}d ${hours}h ${minutes}m ${seconds}s`;
+      }
+
+      updateTimer();
+      const interval = setInterval(updateTimer, 1000);
+    }
+
+    // Start 7-day countdown
+    startCountdown(7);
+  </script>
 </body>
 </html>
