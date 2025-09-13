@@ -3,263 +3,186 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>YourSite — Clean Modern Landing</title>
-  <meta name="description" content="A clean, responsive landing page template. Replace text and images to match your brand." />
-
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-
+  <title>XEVIDEO.COM — Premium Domain Auction</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg: #0f1724;
-      --card: #0b1220;
-      --muted: #93a3c6;
-      --accent: linear-gradient(90deg,#6ee7b7,#60a5fa);
-      --glass: rgba(255,255,255,0.03);
-      --radius: 14px;
-    }
+    :root{--bg1:#150121;--bg2:#3a0d55;--accent1:#ff5fa2;--accent2:#7b3cff}
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0;
-      font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-      background: linear-gradient(180deg,#041028 0%, #07122a 100%);
-      color:#e6eef8;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      line-height:1.45;
-      padding-bottom:40px;
-    }
+    body{margin:0;font-family:'Poppins',sans-serif;background:linear-gradient(180deg,var(--bg1),#1b0a26 40%, #2a0833 100%);color:#eee;}
+    .container{max-width:1200px;margin:0 auto;padding:28px}
+    .header{display:flex;justify-content:space-between;align-items:center;padding:12px 0}
+    .logo{font-weight:800;font-size:20px}
+    .nav a{color:#fff;text-decoration:none;margin-left:20px;opacity:0.9}
 
-    /* container */
-    .wrap{
-      max-width:1100px;
-      margin:36px auto;
-      padding:28px;
-    }
+    .hero{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 20px;border-radius:10px}
+    .title{font-size:88px;letter-spacing:3px;font-weight:800;color:rgba(255,255,255,0.95);text-shadow:0 6px 30px rgba(0,0,0,0.6);margin:8px 0}
+    .subtitle{font-size:18px;color:rgba(255,255,255,0.75);margin-bottom:20px}
 
-    /* header / nav */
-    .nav{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:18px;
-      margin-bottom:28px;
-    }
-    .brand{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      text-decoration:none;
-      color:inherit;
-    }
-    .logo{
-      width:44px;height:44px;border-radius:10px;
-      background:var(--accent);display:flex;align-items:center;justify-content:center;
-      font-weight:700;color:#001;
-      box-shadow:0 6px 18px rgba(2,6,23,0.6);
-    }
-    .nav-right{display:flex;gap:12px;align-items:center;}
-    .btn{
-      padding:10px 16px;border-radius:10px;font-weight:600;background:transparent;border:1px solid rgba(255,255,255,0.06);
-      cursor:pointer;color:inherit;text-decoration:none;
-    }
-    .btn.primary{
-      background:linear-gradient(90deg,#22c55e,#3b82f6);
-      color:#04202a;border:0;box-shadow:0 8px 30px rgba(59,130,246,0.12);
-    }
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)); border:1px solid rgba(255,255,255,0.04); padding:22px; border-radius:16px; box-shadow:0 10px 30px rgba(10,10,20,0.4); display:inline-block}
 
-    /* hero */
-    .hero{
-      display:grid;
-      grid-template-columns:1fr 420px;
-      gap:28px;
-      align-items:center;
-      margin-bottom:28px;
-    }
-    .card{
-      background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
-      border-radius:var(--radius);
-      padding:28px;
-      box-shadow: 0 6px 30px rgba(2,8,20,0.6);
-    }
-    .hero h1{
-      margin:0 0 12px 0;
-      font-size:32px;
-      letter-spacing:-0.4px;
-    }
-    .lead{color:var(--muted);margin-bottom:18px;}
-    .cta-row{display:flex;gap:12px;flex-wrap:wrap}
-    .stats{display:flex;gap:12px;margin-top:18px}
-    .stat{background:var(--glass);padding:10px 14px;border-radius:10px;text-align:center;min-width:84px}
+    .timer{display:grid;grid-template-columns:repeat(4,120px);gap:14px;margin-top:20px}
+    .timebox{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)); padding:16px;border-radius:10px; min-width:90px;text-align:center}
+    .timebox .num{font-size:32px;font-weight:800}
+    .timebox .label{font-size:11px;opacity:0.85}
+    .cta-row{margin-top:18px;display:flex;gap:12px;justify-content:center}
+    .btn{padding:12px 22px;border-radius:34px;border:none;cursor:pointer;font-weight:800}
+    .btn-primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#fff;box-shadow:0 8px 30px rgba(124,63,255,0.16)}
+    .btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.12);color:#fff}
 
-    /* preview card */
-    .preview{
-      height:320px;border-radius:12px;overflow:hidden;background:
-      linear-gradient(135deg,#07102a,#081226);
-      display:flex;align-items:center;justify-content:center;color:var(--muted);
-      border:1px solid rgba(255,255,255,0.03);
+    .section{padding:48px 20px}
+    .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:18px}
+    .metric{background:rgba(255,255,255,0.02);padding:18px;border-radius:12px;text-align:center}
+    .metric .big{font-size:22px;font-weight:800}
+    .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:18px}
+    .card-dark{background:linear-gradient(180deg, rgba(0,0,0,0.22), rgba(0,0,0,0.08));padding:20px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)}
+
+    .footer{padding:24px 20px;border-top:1px solid rgba(255,255,255,0.03);text-align:center;color:rgba(255,255,255,0.62)}
+
+    @media (max-width:760px){
+      .title{font-size:44px}
+      .timer{grid-template-columns:repeat(2,1fr)}
+      .nav{display:none}
     }
-    .preview img{max-width:100%;height:auto;display:block;}
-
-    /* features */
-    .grid3{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:18px;
-      margin-top:22px;
-    }
-    .feature{padding:16px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border:1px solid rgba(255,255,255,0.03)}
-    .feature h3{margin:0 0 8px 0;font-size:16px}
-    .feature p{margin:0;color:var(--muted);font-size:14px}
-
-    /* gallery */
-    .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
-    .tile{height:120px;border-radius:10px;background:var(--glass);display:flex;align-items:center;justify-content:center;color:var(--muted);}
-
-    /* footer */
-    footer{margin-top:32px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-    .small{font-size:13px}
-
-    /* responsive */
-    @media (max-width:980px){
-      .hero{grid-template-columns:1fr; padding-bottom:12px}
-      .wrap{padding:18px}
-      .grid3{grid-template-columns:repeat(2,1fr)}
-      .gallery{grid-template-columns:repeat(2,1fr)}
-      .preview{height:260px}
-    }
-    @media (max-width:560px){
-      .grid3{grid-template-columns:1fr}
-      .gallery{grid-template-columns:1fr}
-      .nav{flex-direction:column;align-items:flex-start;gap:10px}
-      .nav-right{width:100%;justify-content:space-between}
-      .preview{height:200px}
-    }
-
-    /* subtle hover */
-    .feature:hover{transform:translateY(-6px);transition:all .25s ease}
-    .tile:hover{transform:scale(1.02);transition:all .2s ease}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header class="nav">
-      <a class="brand" href="#">
-        <div class="logo">YS</div>
-        <div>
-          <div style="font-weight:700">YourSite</div>
-          <div style="font-size:12px;color:var(--muted)">Clean. Fast. Minimal.</div>
-        </div>
-      </a>
+  <header class="container header">
+    <div class="logo">Premium Domain Auction</div>
+    <nav class="nav"><a href="#about">About Domain</a><a href="#auction" style="margin-left:18px">Auction Details</a><a class="btn btn-primary" href="#register" style="margin-left:18px">Register to Bid</a></nav>
+  </header>
 
-      <div class="nav-right">
-        <nav style="display:flex;gap:12px;align-items:center">
-          <a class="btn" href="#features">Features</a>
-          <a class="btn" href="#gallery">Gallery</a>
-          <a class="btn" href="#contact">Contact</a>
-        </nav>
-        <a class="btn primary" href="#get">Get Started</a>
-      </div>
-    </header>
+  <main class="container">
+    <section class="hero" id="home" style="margin-top:10px">
+      <div class="badge" style="background:linear-gradient(90deg,var(--accent1),var(--accent2));padding:8px 14px;border-radius:24px;font-weight:700;color:#fff;display:inline-block">EXCLUSIVE AUCTION</div>
+      <h1 class="title">XEVIDEO.COM</h1>
+      <p class="subtitle">Premium Domain • <strong>$500,000,000</strong> Reserve</p>
 
-    <section class="hero">
-      <div class="card">
-        <h1>Beautiful, responsive landing — ready to use</h1>
-        <p class="lead">Fast, modern HTML template. Replace text, colors and images to match your brand. Lightweight and mobile-friendly.</p>
-
-        <div class="cta-row">
-          <a class="btn primary" id="get" href="#contact">Start Now</a>
-          <a class="btn" href="#features">See features</a>
-          <a class="btn" href="#" onclick="copyLink()">Copy site link</a>
-        </div>
-
-        <div class="stats" aria-hidden>
-          <div class="stat">
-            <div style="font-weight:700">99%</div>
-            <div style="font-size:12px;color:var(--muted)">Uptime ready</div>
+      <div class="card" id="auction" role="region" aria-label="Auction timer">
+        <div style="display:flex;gap:18px;align-items:center;flex-direction:column">
+          <div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap">
+            <div style="text-align:center">
+              <div style="font-size:28px;font-weight:800">$500,000,000</div>
+              <div style="opacity:0.8">Reserve Price</div>
+            </div>
+            <div style="text-align:center">
+              <div id="registered" style="font-size:28px;font-weight:800">0</div>
+              <div style="opacity:0.8">Registered Bidders</div>
+            </div>
+            <div style="text-align:center">
+              <div id="activeBids" style="font-size:28px;font-weight:800">0</div>
+              <div style="opacity:0.8">Active Bids</div>
+            </div>
           </div>
-          <div class="stat">
-            <div style="font-weight:700">320ms</div>
-            <div style="font-size:12px;color:var(--muted)">Avg load</div>
+
+          <div class="timer" aria-hidden="false" style="margin-top:18px">
+            <div class="timebox"><div class="num" id="days">0</div><div class="label">DAYS</div></div>
+            <div class="timebox"><div class="num" id="hours">0</div><div class="label">HOURS</div></div>
+            <div class="timebox"><div class="num" id="minutes">0</div><div class="label">MINUTES</div></div>
+            <div class="timebox"><div class="num" id="seconds">0</div><div class="label">SECONDS</div></div>
           </div>
-          <div class="stat">
-            <div style="font-weight:700">10k+</div>
-            <div style="font-size:12px;color:var(--muted)">Users</div>
+
+          <div class="cta-row">
+            <button class="btn btn-primary" id="registerBtn">Register to Bid - $10 Fee</button>
+            <button class="btn btn-outline" id="viewBtn">View Domain Details</button>
           </div>
         </div>
-
-        <div class="grid3" id="features">
-          <div class="feature">
-            <h3>Responsive layout</h3>
-            <p>Looks great on phones, tablets and desktop without extra work.</p>
-          </div>
-          <div class="feature">
-            <h3>Lightweight</h3>
-            <p>Pure HTML & CSS with tiny JavaScript for interactions only.</p>
-          </div>
-          <div class="feature">
-            <h3>Easy to edit</h3>
-            <p>Colors, images, and copy — change quickly to match your brand.</p>
-          </div>
-        </div>
-      </div>
-
-      <aside class="card preview" aria-hidden>
-        <!-- Replace this image or use your own screenshot -->
-        <div style="text-align:center;padding:18px">
-          <img src="https://via.placeholder.com/380x240.png?text=Preview+Image" alt="preview">
-          <div style="margin-top:12px;color:var(--muted);font-size:13px">Live preview — replace with your screenshot</div>
-        </div>
-      </aside>
-    </section>
-
-    <section>
-      <h2 style="margin:0 0 12px 0">Gallery</h2>
-      <p class="lead" style="margin-top:0">Showcase or screenshots — replace with your own images.</p>
-      <div class="gallery" id="gallery">
-        <div class="tile">Image 1</div>
-        <div class="tile">Image 2</div>
-        <div class="tile">Image 3</div>
-        <div class="tile">Image 4</div>
-        <div class="tile">Image 5</div>
-        <div class="tile">Image 6</div>
       </div>
     </section>
 
-    <section style="margin-top:20px" id="contact">
-      <div class="card" style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;justify-content:space-between">
-        <div style="flex:1;min-width:220px">
-          <h3 style="margin:0 0 8px 0">Get in touch</h3>
-          <p class="small" style="margin:0 0 12px 0;color:var(--muted)">Questions or customizations? Send a message.</p>
-          <p style="margin:0;color:var(--muted)">Email: <a href="mailto:hello@yoursite.com" style="color:inherit;text-decoration:underline">hello@yoursite.com</a></p>
-        </div>
+    <section class="section" id="about">
+      <h2 style="text-align:center;font-size:32px;margin:0">Premium Domain Asset</h2>
+      <p style="text-align:center;max-width:820px;margin:12px auto;color:rgba(255,255,255,0.75)">XEVIDEO.COM represents a unique opportunity to acquire a premium digital asset with exceptional commercial potential in the entertainment and media industry.</p>
 
-        <form onsubmit="event.preventDefault(); alert('Message sent — replace this behavior with your backend or Form handler');" style="display:flex;gap:8px;min-width:260px">
-          <input type="text" placeholder="Your name" required style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit">
-          <button class="btn primary" type="submit">Send</button>
-        </form>
+      <div class="metrics">
+        <div class="metric"><div class="big">2.5M+</div><div>Monthly Searches</div></div>
+        <div class="metric"><div class="big">98%</div><div>Brand Recognition</div></div>
+        <div class="metric"><div class="big">15K+</div><div>Daily Type-ins</div></div>
+        <div class="metric"><div class="big">$50K+</div><div>Monthly Revenue</div></div>
+      </div>
+
+      <div class="grid-3" style="margin-top:18px">
+        <div class="card-dark"><h3>Global Recognition</h3><p>Premium .COM extension with instant brand recognition worldwide</p></div>
+        <div class="card-dark"><h3>Commercial Value</h3><p>Exceptional potential in the multi-billion dollar video industry</p></div>
+        <div class="card-dark"><h3>Exclusive Ownership</h3><p>Secure, verified ownership transfer through premium auction platform</p></div>
       </div>
     </section>
 
-    <footer>
-      <div class="small">© <span id="year"></span> YourSite • Built with ❤️</div>
-      <div class="small" style="color:var(--muted)">Made responsive — change content as needed</div>
+    <section class="section" style="background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);">
+      <h2 style="text-align:center;font-size:32px;margin:0">Impressive Traffic Metrics</h2>
+      <div class="metrics">
+        <div class="metric"><div class="big">5.2M</div><div>Monthly Page Views</div></div>
+        <div class="metric"><div class="big">1.8M</div><div>Unique Visitors</div></div>
+        <div class="metric"><div class="big">8.5 min</div><div>Avg. Session Time</div></div>
+        <div class="metric"><div class="big">85%</div><div>Return Visitor Rate</div></div>
+      </div>
+    </section>
+
+    <section class="section" id="register">
+      <h2 style="text-align:center;font-size:28px;margin:0">Register Now - Secure Your Spot</h2>
+      <p style="text-align:center;color:rgba(255,255,255,0.7)">Registration fee: $10 (PayPal) • Serious buyers only</p>
+
+      <form id="regForm" style="max-width:720px;margin:16px auto;background:rgba(0,0,0,0.16);padding:16px;border-radius:12px">
+        <label style="display:block;margin-bottom:8px">Full name</label>
+        <input required name="name" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;margin-bottom:10px">
+        <label style="display:block;margin-bottom:8px">Email</label>
+        <input required type="email" name="email" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;margin-bottom:10px">
+        <label style="display:block;margin-bottom:8px">Company (optional)</label>
+        <input name="company" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;margin-bottom:10px">
+        <div style="display:flex;gap:10px;justify-content:center"><button class="btn btn-primary" type="submit">Pay via PayPal</button><button class="btn btn-outline" type="button" id="mailtoBtn">Contact Owner</button></div>
+      </form>
+    </section>
+
+    <footer class="footer">
+      <div>© 2025 Premium Domain Auction. All rights reserved.</div>
+      <div style="margin-top:8px;color:rgba(255,255,255,0.6)">PayPal: koli.swapnil62@gmail.com • Serious Inquiries Only</div>
     </footer>
-  </div>
+  </main>
 
   <script>
-    // small helpers
-    document.getElementById('year').innerText = new Date().getFullYear();
+    // Auction countdown logic
+    // DEFAULT: auction ends 7 days from first load. To set a fixed date, replace the new Date(...) with a date string like new Date('2025-12-31T18:00:00Z')
+    let endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
-    function copyLink(){
-      const url = window.location.href;
-      navigator.clipboard?.writeText(url).then(()=> {
-        alert('Link copied: ' + url);
-      }).catch(()=> {
-        prompt('Copy the link manually:', url);
-      });
+    function updateTimer(){
+      let now = new Date();
+      let diff = endDate - now;
+      if (diff <= 0){
+        document.getElementById('days').textContent = '0';
+        document.getElementById('hours').textContent = '0';
+        document.getElementById('minutes').textContent = '0';
+        document.getElementById('seconds').textContent = '0';
+        clearInterval(timerInterval);
+        document.getElementById('registerBtn').textContent = 'Auction Ended';
+        document.getElementById('registerBtn').disabled = true;
+        return;
+      }
+      let s = Math.floor(diff/1000);
+      let days = Math.floor(s / (24*3600)); s -= days * 24*3600;
+      let hours = Math.floor(s / 3600); s -= hours * 3600;
+      let minutes = Math.floor(s / 60); s -= minutes*60;
+      let seconds = s;
+      document.getElementById('days').textContent = days;
+      document.getElementById('hours').textContent = String(hours).padStart(2,'0');
+      document.getElementById('minutes').textContent = String(minutes).padStart(2,'0');
+      document.getElementById('seconds').textContent = String(seconds).padStart(2,'0');
     }
+
+    let timerInterval = setInterval(updateTimer,1000);
+    updateTimer();
+
+    // demo increment for registered bidders
+    let regCount = 0;
+    setInterval(()=>{ if (regCount < 58) { regCount += Math.floor(Math.random()*2); document.getElementById('registered').textContent = regCount } },4200);
+
+    // simple form handlers - replace PayPal link with your own PayPal.Me or checkout URL
+    document.getElementById('regForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      window.open('https://www.paypal.com/paypalme/koli.swapnil62/10','_blank');
+    });
+    document.getElementById('mailtoBtn').addEventListener('click', function(){ window.location.href = 'mailto:koli.swapnil62@gmail.com?subject=Domain%20Auction%20Inquiry' });
+    document.getElementById('viewBtn').addEventListener('click', ()=>{ document.getElementById('about').scrollIntoView({behavior:'smooth'}) });
+    document.getElementById('registerBtn').addEventListener('click', ()=>{ document.getElementById('register').scrollIntoView({behavior:'smooth'}) });
   </script>
 </body>
 </html>
