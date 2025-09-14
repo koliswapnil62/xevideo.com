@@ -32,14 +32,8 @@
       border-radius: 20px;
       box-shadow: 0 0 20px rgba(0,0,0,0.5);
     }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 10px;
-    }
-    .tagline {
-      font-size: 1.2rem;
-      margin-bottom: 20px;
-    }
+    h1 { font-size: 3rem; margin-bottom: 10px; }
+    .tagline { font-size: 1.2rem; margin-bottom: 20px; }
     .card {
       background: var(--card);
       padding: 20px;
@@ -69,14 +63,9 @@
       margin-top: 20px;
       transition: 0.3s;
     }
-    .btn:hover {
-      opacity: 0.9;
-    }
-    footer {
-      margin-top: 30px;
-      font-size: 0.9rem;
-      opacity: 0.8;
-    }
+    .btn:hover { opacity: 0.9; }
+    footer { margin-top: 30px; font-size: 0.9rem; opacity: 0.8; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -87,7 +76,6 @@
     <div class="card">
       <h2>$500,000,000 Reserve Price</h2>
       <p>8 Registered Bidders • 0 Active Bids</p>
-
       <div class="timer">
         <div><span id="days">6</span> Days</div>
         <div><span id="hours">23</span> Hours</div>
@@ -104,10 +92,22 @@
       <input type="hidden" name="item_name" value="XEVIDEO Auction Registration">
       <input type="hidden" name="amount" value="10.00">
       <input type="hidden" name="currency_code" value="USD">
-      <input type="hidden" name="return" value="https://xevideo.com/thankyou.html">
-      <input type="hidden" name="cancel_return" value="https://xevideo.com/cancel.html">
+      <!-- instead of separate pages, show messages on same page -->
+      <input type="hidden" name="return" value="https://xevideo.com/index.html?status=success">
+      <input type="hidden" name="cancel_return" value="https://xevideo.com/index.html?status=cancel">
       <button type="submit" class="btn">Register & Pay $10</button>
     </form>
+
+    <!-- Success / Cancel messages -->
+    <div id="successMsg" class="hidden">
+      <h2>🎉 Thank You!</h2>
+      <p>Your registration is successful. We will contact you soon.</p>
+      <p>Contact: koli.swapnil62@gmail.com | +91 86559 87777</p>
+    </div>
+    <div id="cancelMsg" class="hidden">
+      <h2>⚠️ Registration Cancelled</h2>
+      <p>You did not complete the payment. Please try again.</p>
+    </div>
 
     <footer>
       Contact: koli.swapnil62@gmail.com | +91 86559 87777
@@ -115,60 +115,31 @@
   </div>
 
   <script>
-    // Simple countdown timer
+    // Countdown timer
     const endDate = new Date().getTime() + (6*24*60*60*1000);
     const timer = setInterval(function(){
       let now = new Date().getTime();
       let distance = endDate - now;
-
       let d = Math.floor(distance / (1000*60*60*24));
       let h = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
       let m = Math.floor((distance % (1000*60*60)) / (1000*60));
       let s = Math.floor((distance % (1000*60)) / 1000);
-
       document.getElementById("days").innerText = d;
       document.getElementById("hours").innerText = h;
       document.getElementById("minutes").innerText = m;
       document.getElementById("seconds").innerText = s;
-
-      if (distance < 0) {
-        clearInterval(timer);
-      }
+      if (distance < 0) clearInterval(timer);
     },1000);
+
+    // Check URL status
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    if (status === "success") {
+      document.getElementById("successMsg").classList.remove("hidden");
+    }
+    if (status === "cancel") {
+      document.getElementById("cancelMsg").classList.remove("hidden");
+    }
   </script>
 </body>
 </html>
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Thank You - XEVIDEO.COM</title>
-</head>
-<body style="font-family:sans-serif; text-align:center; padding:50px;">
-  <h1>🎉 Thank You!</h1>
-  <p>Your registration is successful. We will contact you soon.</p>
-  <p>Contact us: koli.swapnil62@gmail.com | +91 86559 87777</p>
-  <a href="index.html">Back to Home</a>
-</body>
-</html>
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Registration Cancelled - XEVIDEO.COM</title>
-</head>
-<body style="font-family:sans-serif; text-align:center; padding:50px;">
-  <h1>⚠️ Registration Cancelled</h1>
-  <p>Your registration was not completed. Please try again if you still wish to bid.</p>
-  <a href="index.html">Back to Home</a>
-</body>
-</html>
-<input type="hidden" name="business" value="koli.swapnil62@gmail.com">
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-  <input type="hidden" name="business" value="koli.swapnil62@gmail.com">
-  <input type="hidden" name="cmd" value="_xclick">
-  <input type="hidden" name="item_name" value="XEVIDEO Auction Registration">
-  <input type="hidden" name="amount" value="10.00">
-  <input type="hidden" name="currency_code" value="USD">
-  <input type="hidden" name="return" value="https://xevideo.com/thankyou.html">
-  <input type="hidden" name="cancel_return" value="https://xevideo.com/cancel.html">
-  <button type="submit">Register & Pay $10</button>
-</form>
