@@ -1,188 +1,176 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>XEVIDEO.COM — Premium Domain Auction</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XEVIEO.COM - Premium Domain Auction</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    :root{--bg1:#150121;--bg2:#3a0d55;--accent1:#ff5fa2;--accent2:#7b3cff}
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;font-family:'Poppins',sans-serif;background:linear-gradient(180deg,var(--bg1),#1b0a26 40%, #2a0833 100%);color:#eee;}
-    .container{max-width:1200px;margin:0 auto;padding:28px}
-    .header{display:flex;justify-content:space-between;align-items:center;padding:12px 0}
-    .logo{font-weight:800;font-size:20px}
-    .nav a{color:#fff;text-decoration:none;margin-left:20px;opacity:0.9}
-
-    .hero{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 20px;border-radius:10px}
-    .title{font-size:88px;letter-spacing:3px;font-weight:800;color:rgba(255,255,255,0.95);text-shadow:0 6px 30px rgba(0,0,0,0.6);margin:8px 0}
-    .subtitle{font-size:18px;color:rgba(255,255,255,0.75);margin-bottom:20px}
-
-    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)); border:1px solid rgba(255,255,255,0.04); padding:22px; border-radius:16px; box-shadow:0 10px 30px rgba(10,10,20,0.4); display:inline-block}
-
-    .timer{display:grid;grid-template-columns:repeat(4,120px);gap:14px;margin-top:20px}
-    .timebox{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06)); padding:16px;border-radius:10px; min-width:90px;text-align:center}
-    .timebox .num{font-size:32px;font-weight:800}
-    .timebox .label{font-size:11px;opacity:0.85}
-    .cta-row{margin-top:18px;display:flex;gap:12px;justify-content:center}
-    .btn{padding:12px 22px;border-radius:34px;border:none;cursor:pointer;font-weight:800}
-    .btn-primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#fff;box-shadow:0 8px 30px rgba(124,63,255,0.16)}
-    .btn-outline{background:transparent;border:1px solid rgba(255,255,255,0.12);color:#fff}
-
-    .section{padding:48px 20px}
-    .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:18px}
-    .metric{background:rgba(255,255,255,0.02);padding:18px;border-radius:12px;text-align:center}
-    .metric .big{font-size:22px;font-weight:800}
-    .grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin-top:18px}
-    .card-dark{background:linear-gradient(180deg, rgba(0,0,0,0.22), rgba(0,0,0,0.08));padding:20px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)}
-
-    .footer{padding:24px 20px;border-top:1px solid rgba(255,255,255,0.03);text-align:center;color:rgba(255,255,255,0.62)}
-
-    @media (max-width:760px){
-      .title{font-size:44px}
-      .timer{grid-template-columns:repeat(2,1fr)}
-      .nav{display:none}
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      text-align: center;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/c/c6/Sydney_Opera_House_-_Dec_2008.jpg') no-repeat center center/cover;
+    }
+    header {
+      background: rgba(0,0,0,0.7);
+      padding: 20px;
+    }
+    header h1 {
+      font-size: 3rem;
+    }
+    .auction {
+      background: rgba(0,0,0,0.8);
+      padding: 30px;
+      margin: 20px auto;
+      max-width: 700px;
+      border-radius: 15px;
+    }
+    .btn {
+      background: linear-gradient(45deg, #ff0077, #7d2ae8);
+      padding: 12px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: bold;
+      display: inline-block;
+      margin: 10px;
+    }
+    form {
+      background: rgba(0,0,0,0.85);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 600px;
+      margin: 30px auto;
+    }
+    input, select {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+    }
+    .quiz {
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 600px;
+      border-radius: 12px;
+    }
+    footer {
+      background: rgba(0,0,0,0.7);
+      padding: 20px;
+      margin-top: 30px;
+    }
+    .social-icons img {
+      width: 40px;
+      margin: 0 10px;
     }
   </style>
 </head>
 <body>
-  <header class="container header">
-    <div class="logo">Premium Domain Auction</div>
-    <nav class="nav"><a href="#about">About Domain</a><a href="#auction" style="margin-left:18px">Auction Details</a><a class="btn btn-primary" href="#register" style="margin-left:18px">Register to Bid</a></nav>
-  </header>
 
-  <main class="container">
-    <section class="hero" id="home" style="margin-top:10px">
-      <div class="badge" style="background:linear-gradient(90deg,var(--accent1),var(--accent2));padding:8px 14px;border-radius:24px;font-weight:700;color:#fff;display:inline-block">EXCLUSIVE AUCTION</div>
-      <h1 class="title">XEVIDEO.COM</h1>
-      <p class="subtitle">Premium Domain • <strong>$500,000,000</strong> Reserve</p>
+<header>
+  <h1>XEVIEO.COM</h1>
+  <p>Premium Domain Auction - Reserve Price: $500,000,000</p>
+</header>
 
-      <div class="card" id="auction" role="region" aria-label="Auction timer">
-        <div style="display:flex;gap:18px;align-items:center;flex-direction:column">
-          <div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap">
-            <div style="text-align:center">
-              <div style="font-size:28px;font-weight:800">$500,000,000</div>
-              <div style="opacity:0.8">Reserve Price</div>
-            </div>
-            <div style="text-align:center">
-              <div id="registered" style="font-size:28px;font-weight:800">0</div>
-              <div style="opacity:0.8">Registered Bidders</div>
-            </div>
-            <div style="text-align:center">
-              <div id="activeBids" style="font-size:28px;font-weight:800">0</div>
-              <div style="opacity:0.8">Active Bids</div>
-            </div>
-          </div>
+<section class="auction">
+  <h2>Exclusive Auction</h2>
+  <p>Reserve Price: <b>$500,000,000</b></p>
+  <p>Registered Bidders: <b>8</b> | Active Bids: <b>0</b></p>
+  <div id="countdown"></div>
+  <a href="#register" class="btn">Register to Bid - $10 Fee</a>
+</section>
 
-          <div class="timer" aria-hidden="false" style="margin-top:18px">
-            <div class="timebox"><div class="num" id="days">0</div><div class="label">DAYS</div></div>
-            <div class="timebox"><div class="num" id="hours">0</div><div class="label">HOURS</div></div>
-            <div class="timebox"><div class="num" id="minutes">0</div><div class="label">MINUTES</div></div>
-            <div class="timebox"><div class="num" id="seconds">0</div><div class="label">SECONDS</div></div>
-          </div>
+<section id="register">
+  <h2>Register Now</h2>
+  <form action="your-server-code.php" method="POST">
+    <select name="type" required>
+      <option value="">-- Select Company / Individual --</option>
+      <option value="Company">Company</option>
+      <option value="Individual">Individual</option>
+    </select>
+    <input type="text" name="name" placeholder="Full Name / Company Name" required>
+    <input type="email" name="email" placeholder="Email Address" required>
+    <input type="tel" name="phone" placeholder="Phone Number" required>
+    <p>Pay Registration Fee ($10)</p>
+    <div>
+      <!-- PayPal Button -->
+      <div id="paypal-button-container"></div>
+    </div>
+    <button type="submit" class="btn">Submit Registration</button>
+  </form>
+</section>
 
-          <div class="cta-row">
-            <button class="btn btn-primary" id="registerBtn">Register to Bid - $10 Fee</button>
-            <button class="btn btn-outline" id="viewBtn">View Domain Details</button>
-          </div>
-        </div>
-      </div>
-    </section>
+<section class="quiz">
+  <h2>Quick Puzzle for Visitors</h2>
+  <p>Solve this: What is 15 + 27 ?</p>
+  <input type="text" id="answer" placeholder="Enter your answer">
+  <button onclick="checkAnswer()" class="btn">Submit</button>
+  <p id="result"></p>
+</section>
 
-    <section class="section" id="about">
-      <h2 style="text-align:center;font-size:32px;margin:0">Premium Domain Asset</h2>
-      <p style="text-align:center;max-width:820px;margin:12px auto;color:rgba(255,255,255,0.75)">XEVIDEO.COM represents a unique opportunity to acquire a premium digital asset with exceptional commercial potential in the entertainment and media industry.</p>
+<footer>
+  <p>Contact: +91 86559 87777 | koli.swapnil62@gmail.com</p>
+  <p>5% commission available for verified brokers.</p>
+  <div class="social-icons">
+    <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook"></a>
+    <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Twitter"></a>
+    <a href="#"><img src="https://cdn-icons-png.flaticon.com/512/733/733614.png" alt="LinkedIn"></a>
+  </div>
+</footer>
 
-      <div class="metrics">
-        <div class="metric"><div class="big">2.5M+</div><div>Monthly Searches</div></div>
-        <div class="metric"><div class="big">98%</div><div>Brand Recognition</div></div>
-        <div class="metric"><div class="big">15K+</div><div>Daily Type-ins</div></div>
-        <div class="metric"><div class="big">$50K+</div><div>Monthly Revenue</div></div>
-      </div>
+<script>
+// Countdown Timer
+var countDownDate = new Date().getTime() + (6*24*60*60*1000); 
+var x = setInterval(function() {
+  var now = new Date().getTime();
+  var distance = countDownDate - now;
+  var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  document.getElementById("countdown").innerHTML = days + "d " + hours + "h "
+  + minutes + "m " + seconds + "s ";
+  if (distance < 0) {
+    clearInterval(x);
+    document.getElementById("countdown").innerHTML = "EXPIRED";
+  }
+}, 1000);
 
-      <div class="grid-3" style="margin-top:18px">
-        <div class="card-dark"><h3>Global Recognition</h3><p>Premium .COM extension with instant brand recognition worldwide</p></div>
-        <div class="card-dark"><h3>Commercial Value</h3><p>Exceptional potential in the multi-billion dollar video industry</p></div>
-        <div class="card-dark"><h3>Exclusive Ownership</h3><p>Secure, verified ownership transfer through premium auction platform</p></div>
-      </div>
-    </section>
+// Quiz check
+function checkAnswer() {
+  let ans = document.getElementById("answer").value;
+  if(ans == "42") {
+    document.getElementById("result").innerText = "Correct!";
+  } else {
+    document.getElementById("result").innerText = "Try Again!";
+  }
+}
+</script>
 
-    <section class="section" style="background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);">
-      <h2 style="text-align:center;font-size:32px;margin:0">Impressive Traffic Metrics</h2>
-      <div class="metrics">
-        <div class="metric"><div class="big">5.2M</div><div>Monthly Page Views</div></div>
-        <div class="metric"><div class="big">1.8M</div><div>Unique Visitors</div></div>
-        <div class="metric"><div class="big">8.5 min</div><div>Avg. Session Time</div></div>
-        <div class="metric"><div class="big">85%</div><div>Return Visitor Rate</div></div>
-      </div>
-    </section>
-
-    <section class="section" id="register">
-      <h2 style="text-align:center;font-size:28px;margin:0">Register Now - Secure Your Spot</h2>
-      <p style="text-align:center;color:rgba(255,255,255,0.7)">Registration fee: $10 (PayPal) • Serious buyers only</p>
-
-      <form id="regForm" style="max-width:720px;margin:16px auto;background:rgba(0,0,0,0.16);padding:16px;border-radius:12px">
-        <label style="display:block;margin-bottom:8px">Full name</label>
-        <input required name="name" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;margin-bottom:10px">
-        <label style="display:block;margin-bottom:8px">Email</label>
-        <input required type="email" name="email" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;margin-bottom:10px">
-        <label style="display:block;margin-bottom:8px">Company (optional)</label>
-        <input name="company" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#fff;margin-bottom:10px">
-        <div style="display:flex;gap:10px;justify-content:center"><button class="btn btn-primary" type="submit">Pay via PayPal</button><button class="btn btn-outline" type="button" id="mailtoBtn">Contact Owner</button></div>
-      </form>
-    </section>
-
-    <footer class="footer">
-      <div>© 2025 Premium Domain Auction. All rights reserved.</div>
-      <div style="margin-top:8px;color:rgba(255,255,255,0.6)">PayPal: koli.swapnil62@gmail.com • Serious Inquiries Only</div>
-    </footer>
-  </main>
-
-  <script>
-    // Auction countdown logic
-    // DEFAULT: auction ends 7 days from first load. To set a fixed date, replace the new Date(...) with a date string like new Date('2025-12-31T18:00:00Z')
-    let endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-
-    function updateTimer(){
-      let now = new Date();
-      let diff = endDate - now;
-      if (diff <= 0){
-        document.getElementById('days').textContent = '0';
-        document.getElementById('hours').textContent = '0';
-        document.getElementById('minutes').textContent = '0';
-        document.getElementById('seconds').textContent = '0';
-        clearInterval(timerInterval);
-        document.getElementById('registerBtn').textContent = 'Auction Ended';
-        document.getElementById('registerBtn').disabled = true;
-        return;
-      }
-      let s = Math.floor(diff/1000);
-      let days = Math.floor(s / (24*3600)); s -= days * 24*3600;
-      let hours = Math.floor(s / 3600); s -= hours * 3600;
-      let minutes = Math.floor(s / 60); s -= minutes*60;
-      let seconds = s;
-      document.getElementById('days').textContent = days;
-      document.getElementById('hours').textContent = String(hours).padStart(2,'0');
-      document.getElementById('minutes').textContent = String(minutes).padStart(2,'0');
-      document.getElementById('seconds').textContent = String(seconds).padStart(2,'0');
+<!-- PayPal SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=YOUR_CLIENT_ID"></script>
+<script>
+  paypal.Buttons({
+    createOrder: function(data, actions) {
+      return actions.order.create({
+        purchase_units: [{
+          amount: {
+            value: '10.00'
+          }
+        }]
+      });
+    },
+    onApprove: function(data, actions) {
+      return actions.order.capture().then(function(details) {
+        alert('Payment completed by ' + details.payer.name.given_name);
+      });
     }
+  }).render('#paypal-button-container');
+</script>
 
-    let timerInterval = setInterval(updateTimer,1000);
-    updateTimer();
-
-    // demo increment for registered bidders
-    let regCount = 0;
-    setInterval(()=>{ if (regCount < 58) { regCount += Math.floor(Math.random()*2); document.getElementById('registered').textContent = regCount } },4200);
-
-    // simple form handlers - replace PayPal link with your own PayPal.Me or checkout URL
-    document.getElementById('regForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      window.open('https://www.paypal.com/paypalme/koli.swapnil62/10','_blank');
-    });
-    document.getElementById('mailtoBtn').addEventListener('click', function(){ window.location.href = 'mailto:koli.swapnil62@gmail.com?subject=Domain%20Auction%20Inquiry' });
-    document.getElementById('viewBtn').addEventListener('click', ()=>{ document.getElementById('about').scrollIntoView({behavior:'smooth'}) });
-    document.getElementById('registerBtn').addEventListener('click', ()=>{ document.getElementById('register').scrollIntoView({behavior:'smooth'}) });
-  </script>
 </body>
 </html>
