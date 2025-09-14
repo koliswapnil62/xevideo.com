@@ -1,278 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>XEVIDEO.COM — Premium Domain Auction</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XEVIDEO.COM – Premium Domain Auction</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{
+    :root {
       --accent1: #ff5aa6;
       --accent2: #7b36ff;
       --glass: rgba(0,0,0,0.55);
       --card: rgba(0,0,0,0.65);
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:'Poppins',sans-serif;
-      color:#fff;
-      background: url('assets/opera.jpg') center/cover no-repeat fixed, linear-gradient(180deg,#1a0a1a, #200b20);
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      background: url('assets/opera.jpg') center/cover no-repeat fixed,
+                  linear-gradient(180deg,#1a0a1a,#200b20);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
     }
-    .wrap{max-width:1100px;margin:0 auto;padding:28px;}
-    header{display:flex;justify-content:space-between;align-items:center;padding:10px 0}
-    header .brand{font-weight:700;font-size:20px;letter-spacing:2px}
-    header nav a{color:#ddd;margin-left:18px;text-decoration:none}
-    .hero{text-align:center;padding:60px 10px}
-    .hero h1{font-size:84px;margin:0;letter-spacing:6px;text-shadow:0 6px 20px rgba(0,0,0,0.6)}
-    .hero p{opacity:0.9}
-    .auction-card{background:var(--card);border-radius:18px;padding:26px;margin:28px auto;max-width:760px}
-    .stats{display:flex;justify-content:space-around;gap:12px;margin-top:18px}
-    .stat{flex:1;padding:10px;border-radius:12px;background:rgba(255,255,255,0.03)}
-    .btn{display:inline-block;padding:10px 20px;border-radius:28px;border:none;background:linear-gradient(45deg,var(--accent1),var(--accent2));color:#fff;font-weight:600;text-decoration:none;cursor:pointer}
-    form{max-width:720px;margin:18px auto;background:var(--glass);padding:18px;border-radius:12px}
-    input, select{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:none;background:rgba(255,255,255,0.06);color:#fff}
-    label{display:block;text-align:left;font-size:13px;margin-top:8px;opacity:0.9}
-    #paypal-button-container{margin-top:10px}
-    .quiz{max-width:720px;margin:18px auto;padding:18px;border-radius:12px;background:rgba(0,0,0,0.5)}
-    footer{padding:18px;text-align:center;opacity:0.95}
-    .contact-card{display:none;background:rgba(0,0,0,0.75);padding:18px;margin-top:12px;border-radius:10px}
-    .social-icons img{width:34px;margin:0 8px;vertical-align:middle}
-    @media(max-width:720px){
-      .hero h1{font-size:42px}
-      .stats{flex-direction:column}
+    .wrap {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      background: var(--glass);
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px 0;
+    }
+    .timer {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .timer div {
+      background: var(--accent2);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 1.2rem;
+    }
+    .btn {
+      background: linear-gradient(45deg, var(--accent1), var(--accent2));
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 30px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      opacity: 0.9;
+    }
+    footer {
+      margin-top: 30px;
+      font-size: 0.9rem;
+      opacity: 0.8;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <header>
-      <div class="brand">XEVIDEO.COM</div>
-      <nav>
-        <a href="#about">About Domain</a>
-        <a href="#register">Register</a>
-        <a href="#media">Media</a>
-      </nav>
-    </header>
+    <h1>XEVIDEO.COM</h1>
+    <p class="tagline">Premium Domain • $500,000,000 Reserve</p>
 
-    <section class="hero">
-      <h1>XEVIDEO.COM</h1>
-      <p style="font-size:18px">Premium Domain Auction — Reserve Price: <strong>$500,000,000</strong></p>
+    <div class="card">
+      <h2>$500,000,000 Reserve Price</h2>
+      <p>8 Registered Bidders • 0 Active Bids</p>
 
-      <div class="auction-card">
-        <div style="font-size:28px;font-weight:700">$500,000,000</div>
-        <div style="margin-top:8px;opacity:0.9">Reserve Price</div>
-        <div class="stats">
-          <div class="stat">
-            <div style="font-size:22px" id="reg-count">0</div>
-            <div style="opacity:0.85">Registered Bidders</div>
-          </div>
-          <div class="stat">
-            <div style="font-size:22px" id="active-bids">0</div>
-            <div style="opacity:0.85">Active Bids</div>
-          </div>
-          <div class="stat">
-            <div id="countdown" style="font-size:20px">--:--:--</div>
-            <div style="opacity:0.85">Time Left</div>
-          </div>
-        </div>
-
-        <div style="margin-top:18px">
-          <a href="#register" class="btn">Register to Bid — $10 Fee</a>
-        </div>
+      <div class="timer">
+        <div><span id="days">6</span> Days</div>
+        <div><span id="hours">23</span> Hours</div>
+        <div><span id="minutes">58</span> Min</div>
+        <div><span id="seconds">36</span> Sec</div>
       </div>
-    </section>
+    </div>
 
-    <!-- Register Form -->
-    <section id="register">
-      <h2 style="text-align:center">Register to bid (only paid registrants see contact details)</h2>
-
-      <form id="regForm" onsubmit="event.preventDefault(); saveRegistration();">
-        <label>Type</label>
-        <select id="reg_type" required>
-          <option value="">Select</option>
-          <option value="Company">Company</option>
-          <option value="Individual">Individual</option>
-        </select>
-
-        <label>Company Name (optional)</label>
-        <input id="reg_company" placeholder="Company name (if applicable)">
-
-        <label>Full name</label>
-        <input id="reg_name" required placeholder="Full name (or company contact name)">
-
-        <label>Email</label>
-        <input id="reg_email" type="email" required placeholder="email@example.com">
-
-        <label>Phone</label>
-        <input id="reg_phone" required placeholder="+91XXXXXXXXXX">
-
-        <input id="reg_id" type="hidden">
-        <div style="margin-top:12px;">
-          <button class="btn" type="button" onclick="saveRegistration()">Save & Proceed to Pay $10</button>
-        </div>
-
-        <div id="paypal-area" style="margin-top:12px;display:none">
-          <div id="paypal-button-container"></div>
-        </div>
-      </form>
-
-      <div class="contact-card" id="contactCard">
-        <h3>Contact details (visible because your registration & payment are confirmed)</h3>
-        <p><strong>Phone:</strong> +91 86559 87777</p>
-        <p><strong>Email:</strong> koli.swapnil62@gmail.com</p>
-        <p style="opacity:0.9">A 5% broker commission is available for verified brokers.</p>
-      </div>
-    </section>
-
-    <!-- Quiz / Puzzle -->
-    <section class="quiz">
-      <h3>Engage: Quick Puzzle</h3>
-      <p id="puzzleText">Loading puzzle...</p>
-      <input id="puzzleAnswer" placeholder="Your answer">
-      <button class="btn" onclick="submitPuzzle()">Submit</button>
-      <p id="puzzleResult" style="margin-top:10px"></p>
-    </section>
-
-    <!-- Media / Social -->
-    <section id="media" style="text-align:center;margin-top:20px">
-      <h3>Media & Press</h3>
-      <p>We welcome press inquiries. Registered buyers will get priority contact.</p>
-      <div class="social-icons">
-        <a href="#" title="Facebook"><img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="FB"></a>
-        <a href="#" title="Twitter"><img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="TW"></a>
-        <a href="#" title="LinkedIn"><img src="https://cdn-icons-png.flaticon.com/512/733/733614.png" alt="LI"></a>
-      </div>
-    </section>
+    <!-- ✅ PayPal Registration Form -->
+    <h2>Register to Bid - $10 Fee</h2>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+      <input type="hidden" name="business" value="koli.swapnil62@gmail.com">
+      <input type="hidden" name="cmd" value="_xclick">
+      <input type="hidden" name="item_name" value="XEVIDEO Auction Registration">
+      <input type="hidden" name="amount" value="10.00">
+      <input type="hidden" name="currency_code" value="USD">
+      <input type="hidden" name="return" value="https://xevideo.com/thankyou.html">
+      <input type="hidden" name="cancel_return" value="https://xevideo.com/cancel.html">
+      <button type="submit" class="btn">Register & Pay $10</button>
+    </form>
 
     <footer>
-      <div>5% commission for verified brokers · Thank you for visiting XEVIDEO.COM</div>
+      Contact: koli.swapnil62@gmail.com | +91 86559 87777
     </footer>
   </div>
 
-<script>
-  // Countdown (6 days from first load — edit to fixed target as needed)
-  let target = new Date().getTime() + (6*24*60*60*1000);
-  setInterval(()=>{
-    let now = new Date().getTime();
-    let d = Math.max(0, target - now);
-    let days = Math.floor(d/(1000*60*60*24));
-    let hrs = Math.floor((d%(1000*60*60*24))/(1000*60*60));
-    let mins = Math.floor((d%(1000*60*60))/(1000*60));
-    let secs = Math.floor((d%(1000*60))/1000);
-    document.getElementById('countdown').innerText = `${days}d ${hrs}h ${mins}m ${secs}s`;
-  }, 1000);
+  <script>
+    // Simple countdown timer
+    const endDate = new Date().getTime() + (6*24*60*60*1000);
+    const timer = setInterval(function(){
+      let now = new Date().getTime();
+      let distance = endDate - now;
 
-  // Basic puzzle pool
-  const puzzles = [
-    {q: "What number is next: 2, 4, 8, 16, ?", a: "32"},
-    {q: "I speak without a mouth and hear without ears. What am I?", a: "echo"},
-    {q: "What is 15 + 27 ?", a: "42"}
-  ];
-  let currentPuzzle = puzzles[Math.floor(Math.random()*puzzles.length)];
-  document.getElementById('puzzleText').innerText = currentPuzzle.q;
+      let d = Math.floor(distance / (1000*60*60*24));
+      let h = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
+      let m = Math.floor((distance % (1000*60*60)) / (1000*60));
+      let s = Math.floor((distance % (1000*60)) / 1000);
 
-  function submitPuzzle(){
-    const ans = (document.getElementById('puzzleAnswer').value||'').trim().toLowerCase();
-    if(!ans){ document.getElementById('puzzleResult').innerText = 'Please enter an answer.'; return; }
-    if(ans === String(currentPuzzle.a).toLowerCase()){
-      document.getElementById('puzzleResult').innerText = 'Correct! Thanks for playing.';
-    } else {
-      document.getElementById('puzzleResult').innerText = 'Not quite — try again!';
-    }
-  }
+      document.getElementById("days").innerText = d;
+      document.getElementById("hours").innerText = h;
+      document.getElementById("minutes").innerText = m;
+      document.getElementById("seconds").innerText = s;
 
-  // Registration + PayPal flow
-  let regId = null;
-  async function saveRegistration(){
-    const type = document.getElementById('reg_type').value;
-    const company = document.getElementById('reg_company').value.trim();
-    const name = document.getElementById('reg_name').value.trim();
-    const email = document.getElementById('reg_email').value.trim();
-    const phone = document.getElementById('reg_phone').value.trim();
-    if(!type || !name || !email || !phone){ alert('Please fill required fields.'); return; }
-
-    const payload = {type,company,name,email,phone};
-    let res = await fetch('register.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    let json = await res.json();
-    if(json.success){
-      regId = json.reg_id;
-      document.getElementById('reg_id').value = regId;
-      document.getElementById('paypal-area').style.display = 'block';
-      renderPayPalButton();
-      alert('Registration saved. Please complete payment ($10) to view contact details.');
-      updateCounts(json.total_registrations || 0);
-    } else {
-      alert('Failed to save registration: ' + (json.error || 'unknown'));
-    }
-  }
-
-  function updateCounts(total){ if(total) document.getElementById('reg-count').innerText = total; }
-
-  // Load PayPal SDK (replace YOUR_PAYPAL_CLIENT_ID below with your client id)
-  (function loadPayPalSDK(){
-    const clientId = 'YOUR_PAYPAL_CLIENT_ID'; // <-- REPLACE THIS
-    const s = document.createElement('script');
-    s.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
-    s.onload = ()=>console.log('PayPal SDK loaded');
-    document.head.appendChild(s);
-  })();
-
-  function renderPayPalButton(){
-    if(!window.paypal){ setTimeout(renderPayPalButton,200); return; }
-    // clear container first
-    document.getElementById('paypal-button-container').innerHTML = '';
-    paypal.Buttons({
-      style:{shape:'pill',label:'pay',height:40},
-      createOrder: function(data, actions) {
-        // create $10 order
-        return actions.order.create({
-          purchase_units: [{
-            amount: { value: '10.00' },
-            description: 'XEVIDEO.COM Auction registration fee',
-            custom_id: regId || ''
-          }]
-        });
-      },
-      onApprove: function(data, actions) {
-        return actions.order.capture().then(function(details) {
-          // send capture details to server for verification + email
-          return fetch('capture.php',{
-            method:'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({ orderID: details.id, reg_id: regId, payer: details.payer })
-          }).then(r=>r.json()).then(resp=>{
-            if(resp.success){
-              alert('Payment verified. Contact details unlocked.');
-              document.getElementById('contactCard').style.display = 'block';
-            } else {
-              alert('Payment recorded but verification failed: ' + (resp.error || 'unknown'));
-            }
-          }).catch(e=>{
-            console.error(e);
-            alert('Error contacting server after payment.');
-          });
-        });
-      },
-      onError: function(err){ console.error(err); alert('PayPal error: '+ err); }
-    }).render('#paypal-button-container');
-  }
-<section class="register">
-  <h2>Register for Auction</h2>
-  <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-    <input type="hidden" name="business" value="your-paypal-business-email@example.com">
-    <input type="hidden" name="cmd" value="_xclick">
-    <input type="hidden" name="item_name" value="XEVIDEO Auction Registration">
-    <input type="hidden" name="amount" value="10.00">
-    <input type="hidden" name="currency_code" value="USD">
-    <input type="hidden" name="return" value="https://xevideo.com/thankyou.html">
-    <input type="hidden" name="cancel_return" value="https://xevideo.com/cancel.html">
-    <button type="submit">Register & Pay $10</button>
-  </form>
-</section>
-
-</script>
+      if (distance < 0) {
+        clearInterval(timer);
+      }
+    },1000);
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Thank You - XEVIDEO.COM</title>
+</head>
+<body style="font-family:sans-serif; text-align:center; padding:50px;">
+  <h1>🎉 Thank You!</h1>
+  <p>Your registration is successful. We will contact you soon.</p>
+  <p>Contact us: koli.swapnil62@gmail.com | +91 86559 87777</p>
+  <a href="index.html">Back to Home</a>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Registration Cancelled - XEVIDEO.COM</title>
+</head>
+<body style="font-family:sans-serif; text-align:center; padding:50px;">
+  <h1>⚠️ Registration Cancelled</h1>
+  <p>Your registration was not completed. Please try again if you still wish to bid.</p>
+  <a href="index.html">Back to Home</a>
 </body>
 </html>
