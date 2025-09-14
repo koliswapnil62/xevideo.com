@@ -113,3 +113,109 @@
   </script>
 </body>
 </html>
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow([new Date(), data.name, data.email, data.phone, data.company]);
+  return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.TEXT);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XEVlDEO.COM — Premium Domain Auction</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1a0a1a, #200b20);
+      color: #fff;
+      text-align: center;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+    }
+    h1 { font-size: 2.5em; margin-bottom: 10px; }
+    .auction-box {
+      background: rgba(0,0,0,0.7);
+      padding: 20px;
+      border-radius: 15px;
+      margin: 20px auto;
+    }
+    .btn {
+      background: #ff0077;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    input {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>XEVlDEO.COM</h1>
+    <p>Premium Domain • $500,000,000 Reserve</p>
+
+    <div class="auction-box">
+      <h2>$500,000,000 Reserve Price</h2>
+      <p>8 Registered Bidders • 0 Active Bids</p>
+
+      <h3>Register Now - $10 Fee</h3>
+
+      <form id="registerForm">
+        <input type="text" name="name" placeholder="Your Name" required>
+        <input type="email" name="email" placeholder="Your Email" required>
+        <input type="text" name="phone" placeholder="Your Phone" required>
+        <input type="text" name="company" placeholder="Company / Individual" required>
+        <button type="submit" class="btn">Submit & Pay $10</button>
+      </form>
+    </div>
+
+    <p>Contact: koli.swapnil62@gmail.com | +91 86559 87777</p>
+  </div>
+
+  <script>
+    const form = document.getElementById("registerForm");
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const data = {
+        name: form.name.value,
+        email: form.email.value,
+        phone: form.phone.value,
+        company: form.company.value
+      };
+
+      fetch("YOUR_GOOGLE_SCRIPT_URL", {
+        method: "POST",
+        body: JSON.stringify(data)
+      })
+      .then(res => res.text())
+      .then(res => {
+        alert("Registration successful! Redirecting to PayPal...");
+        window.open("https://www.paypal.me/swapnilkoli62/10", "_blank");
+        form.reset();
+      })
+      .catch(err => alert("Error saving data!"));
+    });
+  </script>
+</body>
+</html>
