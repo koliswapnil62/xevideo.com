@@ -79,7 +79,28 @@
       font-size: 0.9em;
       opacity: 0.7;
     }
-  </style>
+    <style>
+.play-section {
+  text-align: center;
+  margin: 30px 0;
+}
+
+.play-btn {
+  display: inline-block;
+  padding: 12px 25px;
+  background-color: #ff5722;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.play-btn:hover {
+  background-color: #e64a19;
+}
+</style>
 </head>
 <body>
   <div class="overlay">
@@ -98,6 +119,9 @@
     <!-- Analog Clock -->
     <canvas id="clockCanvas" width="200" height="200"></canvas>
 
+    <div class="play-section">
+  <a href="game.html" class="play-btn">🎮 Play Now</a>
+</div>
     <footer>
       <p>© 2025 XEVIDEO.COM | Premium Digital Asset</p>
     </footer>
