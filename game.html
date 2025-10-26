@@ -1,1 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mini Dino - Endless Runner</title>
+<style>
+  :root{
+    --bg:#f7f7f7;
+    --ground:#535353;
+    --dino:#2b2b2b;
+    --ob:#0b6a0b;
+    --text:#222;
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{display:flex;align-items:center;justify-content:center;background:linear-gradient(#e9eef6,#f7f7f7);color:var(--text);}
+  .wrap{width:100%;max-width:900px;padding:20px;box-sizing:border-box}
+  h1{font-size:18px;margin:0 0 12px;text-align:center}
+  #game{
+    display:block;
+    width:100%;
+    background:var(--bg);
+    border-radius:8px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.12);
+  }
+  .info{display:flex;justify-content:space-between;padding:8px 6px 0 6px;align-items:center}
+  .btn{background:#0b6bfd;color:#fff;padding:6px 10px;border-radius:6px;border:0;cursor:pointer}
+  .small{font-size:13px;color:#555}
+  .center{display:flex;justify-content:center;margin-top:8px;gap:8px}
+  .hint{font-size:12px;color:#666;text-align:center;margin-top:8px}
+  /* make canvas responsive */
+  canvas{width:100%;height:420px;display:block;border-bottom-left-radius:8px;border-bottom-right-radius:8px}
+  @media (max-width:600px){ canvas{height:360px} }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Mini Dino — Endless Runner (Space / Tap to jump)</h1>
+    <div class="info">
+      <div>
+        <strong>Score:</strong> <span id="score">0</span>
+        &nbsp; • &nbsp;
+        <strong>Best:</strong> <span id="best">0</span>
+      </div>
+      <div>
+        <button id="startBtn" class="btn">Start / Restart</button>
+      </div>
+    </div>
+
+    <canvas id="game" width="1200" height="420"></canvas>
+
+    <div class="center">
+      <div class="small">Use <strong>Space</strong> or <strong>Up</strong> to jump. Tap on mobile.</div>
+    </div>
+    <div class="hint">Game speeds up as score increases. It'll save best score in your browser.</div>
+  </div>
+
+<script>
+/*
+  Simple endless runner like Chrome Dino.
+  Single file. No external libs.
+*/
+
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+
+  // For high-DPI screens keep logical size and scale canvas
+  function resizeForDPR() {
+    const DPR = Math.max(1, window.devicePixelRatio || 1);
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.floor(rect.width * DPR);
+    canvas.height = Math.floor(rect.height * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  resizeForDPR();
+  window.addEventListener('resize', resizeForDPR);
+
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const startBtn = document.getElementById('startBtn');
+
+  // Game state
+  let running = false;
+  let lastTime = 0;
+  let spawnTimer = 0;
+  let obstacles = [];
+  let particles = [];
+  let speed = 6;        // base game speed
+  let difficultyRatio = 0.0008; // speed increase per ms of score
+  let groundY = 300;
+  let score = 0;
+  let best = parseInt(localStorage.getItem('mini-dino-best') || '0', 10);
+
+  bestEl.textContent = best;
+
+  // Dino player
+  const player = {
+    x: 60,
+    y: groundY - 48,
+    w: 44,
+    h: 44,
+    vy: 0,
+    gravity: 0.9,
+    jumpPower: -14,
+    onGround: true,
+    ducking: false,
+    draw() {
+      ctx.save();
+      // body
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--dino') || '#222';
+      roundRect(ctx, this.x, this.y, this.w, this.h, 6, true, false);
+      // eye
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(this.x + this.w - 14, this.y + 12, 6, 6);
+      ctx.restore();
+    },
+    update(dt) {
+      this.vy += this.gravity;
+      this.y += this.vy;
+      if (this.y >= groundY - this.h) {
+        this.y = groundY - this.h;
+        this.vy = 0;
+        this.onGround = true;
+      } else this.onGround = false;
+    },
+    jump() {
+      if (this.onGround) {
+        this.vy = this.jumpPower;
+        this.onGround = false;
+      }
+    }
+  };
+
+  // helper for rounded rect
+  function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+  }
+
+  // obstacle factory (cacti)
+  function spawnObstacle() {
+    const heights = [30, 40, 50];
+    const h = heights[Math.floor(Math.random() * heights.length)];
+    const w = Math.max(12, Math.floor(12 + Math.random() * 24));
+    const obs = {
+      x: canvas.clientWidth + 40,
+      y: groundY - h,
+      w,
+      h,
+      color: getComputedStyle(document.documentElement).getPropertyValue('--ob') || '#0b6a0b',
+      update(dt) {
+        this.x -= speed;
+      },
+      draw() {
+        ctx.fillStyle = this.color;
+        roundRect(ctx, this.x, this.y, this.w, this.h, 4, true, false);
+        // little top spikes
+        ctx.fillRect(this.x - 2, this.y - 6, 4, 6);
+        ctx.fillRect(this.x + this.w - 2, this.y - 6, 4, 6);
+      }
+    };
+    obstacles.push(obs);
+  }
+
+  // ground rendering
+  function drawGround() {
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ground') || '#444';
+    ctx.fillRect(0, groundY, canvas.clientWidth, 6);
+  }
+
+  // score update
+  function updateScore(dt) {
+    score += dt * 0.01; // scaled
+    scoreEl.textContent = Math.floor(score);
+    // speed increases slowly
+    speed = 6 + score * 0.02; // tune this factor to increase difficulty
+  }
+
+  // collision detection (AABB)
+  function collide(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  // game loop
+  function loop(ts) {
+    if (!running) return;
+    const dt = Math.min(34, ts - lastTime); // cap dt
+    lastTime = ts;
+
+    // clear
+    ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+
+    // background parallax (very subtle)
+    ctx.fillStyle = '#eaf0f8';
+    ctx.fillRect(0, 0, canvas.clientWidth, groundY);
+
+    // spawn obstacles
+    spawnTimer += dt;
+    const spawnInterval = Math.max(650, 1400 - score * 6); // shorter as score increases
+    if (spawnTimer > spawnInterval) {
+      spawnTimer = 0;
+      spawnObstacle();
+    }
+
+    // update/draw obstacles
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      const o = obstacles[i];
+      o.update(dt);
+      o.draw();
+      if (o.x + o.w < -40) obstacles.splice(i, 1); // off screen
+      // collision
+      if (collide(player, o)) {
+        // game over
+        endGame();
+        return;
+      }
+    }
+
+    // player update/draw
+    player.update(dt);
+    player.draw();
+
+    // ground
+    drawGround();
+
+    // small particles (dust) when on ground
+    if (player.onGround && Math.random() < 0.08) {
+      particles.push({
+        x: player.x + 6 + Math.random() * 12,
+        y: player.y + player.h - 4,
+        vx: -1.2 - Math.random() * 0.8,
+        life: 300,
+        size: 2 + Math.random() * 3
+      });
+    }
+    // update/draw particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.life -= dt;
+      ctx.fillStyle = '#bdbdbd';
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // score
+    updateScore(dt);
+
+    requestAnimationFrame(loop);
+  }
+
+  function startGame() {
+    // reset
+    running = true;
+    lastTime = performance.now();
+    spawnTimer = 0;
+    obstacles = [];
+    particles = [];
+    player.y = groundY - player.h;
+    player.vy = 0;
+    score = 0;
+    speed = 6;
+    requestAnimationFrame(loop);
+  }
+
+  function endGame() {
+    running = false;
+    // update best
+    const sc = Math.floor(score);
+    if (sc > best) {
+      best = sc;
+      localStorage.setItem('mini-dino-best', best);
+      bestEl.textContent = best;
+    }
+    // show simple overlay (use browser alert fallback)
+    setTimeout(() => {
+      // small modal-like message drawn on canvas
+      ctx.fillStyle = 'rgba(0,0,0,0.55)';
+      ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+      ctx.fillStyle = '#fff';
+      ctx.font = '24px system-ui, Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Game Over', canvas.clientWidth / 2, canvas.clientHeight / 2 - 10);
+      ctx.font = '16px system-ui, Arial';
+      ctx.fillText('Click Start / press Space to try again', canvas.clientWidth / 2, canvas.clientHeight / 2 + 24);
+    }, 60);
+  }
+
+  // input handlers
+  function onKey(e) {
+    if (e.code === 'Space' || e.code === 'ArrowUp') {
+      e.preventDefault();
+      if (!running) startGame();
+      player.jump();
+    }
+  }
+  function onTouch() {
+    if (!running) startGame();
+    player.jump();
+  }
+
+  window.addEventListener('keydown', onKey);
+  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onTouch(); }, {passive:false});
+  canvas.addEventListener('mousedown', () => { if (!running) startGame(); player.jump(); });
+
+  startBtn.addEventListener('click', () => {
+    startGame();
+  });
+
+  // initial draw
+  function drawIntro() {
+    ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+    ctx.fillStyle = '#eaf0f8';
+    ctx.fillRect(0,0,canvas.clientWidth,groundY);
+    drawGround();
+    // draw dino idle
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--dino') || '#222';
+    roundRect(ctx, player.x, player.y, player.w, player.h, 6, true, false);
+    ctx.fillStyle = '#333';
+    ctx.font = '16px system-ui, Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Press Space / Tap to Start', canvas.clientWidth/2, 60);
+    ctx.fillStyle = '#666';
+    ctx.fillText('Mini Dino — single file. Best score saved locally.', canvas.clientWidth/2, 82);
+  }
+  drawIntro();
+
+})();
+</script>
+</body>
+</html>
 
