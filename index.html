@@ -1,494 +1,191 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>XEVideo — Dark Video Platform (Prototype)</title>
-<!--
-Single-file prototype for a YouTube-like platform (dark/black theme)
-Features included (frontend simulation):
-- Home feed, search, categories/tags
-- Video cards grid, watch modal (quality, speed, PiP stub)
-- Upload UI (drag & drop) — stores files as DataURLs in localStorage for demo
-- Likes, comments, replies, report buttons (localStorage)
-- Playlists (save to playlist), watch later, history
-- Creator dashboard (mock analytics)
-- Live stream stub page
-- Admin panel UI (mock)
-- Flash sale banner (50,000,000 USD) with Contact (k1000fish@gmail.com)
-Notes: Replace placeholder video sources with real URLs and connect to backend for production.
--->
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Premium Website For Sale | $50 Million</title>
+
 <style>
-  :root{
-    --bg:#030303;
-    --panel:#0a0a0a;
-    --card:#0f0f0f;
-    --muted:#9aa3ad;
-    --accent:#00e676; /* green accent for CTA */
-    --glass: rgba(255,255,255,0.02);
-    --banner: linear-gradient(90deg,#000,#0b0b0b);
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:#eee;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-  a{color:inherit;text-decoration:none}
-  button{font:inherit;cursor:pointer}
-  /* layout */
-  .wrap{display:grid;grid-template-columns:260px 1fr;min-height:100vh;grid-template-rows:auto 1fr}
-  header{grid-column:1/-1;display:flex;align-items:center;padding:12px 18px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);position:sticky;top:0;z-index:80;border-bottom:1px solid rgba(255,255,255,0.03)}
-  .logo{display:flex;gap:12px;align-items:center}
-  .logo .mark{width:40px;height:40px;border-radius:8px;background:linear-gradient(180deg,#040404,#111);display:grid;place-items:center}
-  .search{flex:1;display:flex;margin-left:18px;max-width:820px}
-  .search input{flex:1;padding:10px 12px;border-radius:8px 0 0 8px;border:none;background:#0b0b0b;color:#fff;outline:none}
-  .search button{padding:10px 14px;border-radius:0 8px 8px 0;border:none;background:var(--accent);color:#00110a;font-weight:700}
-  .top-actions{display:flex;gap:10px;margin-left:12px}
-  /* sidebar */
-  nav.sidebar{background:linear-gradient(180deg,transparent,transparent);padding:18px 12px;border-right:1px solid rgba(255,255,255,0.02);height:calc(100vh - 64px);overflow:auto}
-  .nav-item{padding:10px;border-radius:8px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:10px}
-  .nav-item.active{background:var(--glass);color:#fff}
-  .section-title{margin:14px 6px 6px;color:var(--muted);font-size:12px;text-transform:uppercase}
-  /* main */
-  main{padding:18px;height:calc(100vh - 64px);overflow:auto}
-  .hero{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-  .filters{display:flex;gap:8px;flex-wrap:wrap}
-  .chip{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,0.02);color:var(--muted);cursor:pointer}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
-  .card{background:var(--card);border-radius:12px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
-  .thumb{position:relative;aspect-ratio:16/9;background:linear-gradient(180deg,#111,#000);display:flex;align-items:end;padding:10px;cursor:pointer}
-  .meta{display:flex;gap:12px;padding:12px}
-  .avatar{width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,#222,#000)}
-  .title{font-weight:700}
-  .sub{color:var(--muted);font-size:13px}
-  /* watch modal */
-  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,0.7),rgba(0,0,0,0.9));z-index:200;padding:20px}
-  .modal.open{display:flex}
-  .player{background:var(--panel);border-radius:12px;overflow:hidden;max-width:1100px;width:100%}
-  .vtop{display:flex;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.03)}
-  .player video{width:100%;height:auto;background:#000}
-  .controls{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;color:var(--muted)}
-  .btn{background:transparent;border:1px solid rgba(255,255,255,0.04);color:#fff;padding:8px 10px;border-radius:8px}
-  /* comments */
-  .comments{padding:12px;background:linear-gradient(180deg,transparent,rgba(255,255,255,0.01));}
-  .comment{padding:8px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01)}
-  .comment .meta{display:flex;gap:8px;color:var(--muted);font-size:13px}
-  /* upload modal */
-  .upload-area{border:2px dashed rgba(255,255,255,0.04);padding:20px;border-radius:10px;text-align:center;color:var(--muted)}
-  .upload-area.drag{background:rgba(255,255,255,0.01)}
-  /* dashboard mock */
-  .panel{background:var(--card);padding:14px;border-radius:10px}
-  .stats{display:flex;gap:12px}
-  .stat{flex:1;padding:12px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent)}
-  /* flash sale banner */
-  .flash{position:fixed;left:0;right:0;top:70px;display:flex;justify-content:center;z-index:220}
-  .flash-inner{background:var(--banner);padding:10px 14px;border-radius:8px;display:flex;gap:12px;align-items:center;box-shadow:0 8px 30px rgba(0,0,0,0.6);max-width:1100px}
-  .flash-cta{background:#fff;color:#000;padding:8px 12px;border-radius:8px;font-weight:700}
-  .flash-close{background:transparent;border:0;color:var(--muted);font-size:18px}
-  /* contact panel */
-  .contact{position:fixed;right:18px;bottom:18px;width:320px;background:var(--panel);padding:14px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.6);display:none;z-index:230}
-  .contact.open{display:block}
-  .contact .mailto{display:inline-block;padding:8px 12px;border-radius:8px;background:var(--accent);color:#00110a;font-weight:700}
-  /* admin */
-  .admin-list{display:grid;gap:8px}
-  .admin-row{background:rgba(255,255,255,0.02);padding:8px;border-radius:8px;display:flex;justify-content:space-between;align-items:center}
-  /* responsive */
-  @media(max-width:920px){.wrap{grid-template-columns:1fr}.sidebar{display:none}.flash{top:88px}}
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: black;
+        color: white;
+        overflow: hidden;
+    }
+
+    /* BACKGROUND WORLD MAP */
+    .bg {
+        position: fixed;
+        inset: 0;
+        background: url("https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg")
+                    center/cover no-repeat;
+        opacity: 0.15;
+        z-index: -1;
+    }
+
+    /* FLASH BUY MESSAGE */
+    .flash-box {
+        text-align: center;
+        padding: 20px;
+        background: rgba(255, 0, 0, 0.8);
+        font-size: 28px;
+        font-weight: bold;
+        animation: flash 1s infinite alternate;
+        letter-spacing: 2px;
+    }
+
+    @keyframes flash {
+        from { opacity: 1; }
+        to { opacity: 0.55; }
+    }
+
+    /* CLOCK LAYOUT */
+    .clock-container {
+        display: flex;
+        justify-content: center;
+        gap: 50px;
+        margin-top: 80px;
+        flex-wrap: wrap;
+    }
+
+    .clock-box {
+        text-align: center;
+    }
+
+    .clock {
+        width: 150px;
+        height: 150px;
+        border: 4px solid white;
+        border-radius: 50%;
+        position: relative;
+        margin: auto;
+    }
+
+    .hand {
+        width: 50%;
+        height: 2px;
+        background: white;
+        position: absolute;
+        top: 50%;
+        transform-origin: left;
+    }
+
+    .hour-hand { height: 4px; }
+    .minute-hand { height: 3px; }
+    .second-hand { background: red; height: 2px; }
+    
+    .label {
+        margin-top: 15px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .contact {
+        position: fixed;
+        bottom: 20px;
+        width: 100%;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    .contact a {
+        color: cyan;
+        text-decoration: none;
+    }
 </style>
 </head>
+
 <body>
-<div class="wrap">
 
-  <!-- header -->
-  <header>
-    <div class="logo" aria-hidden="true">
-      <div class="mark"><svg width="22" height="22" viewBox="0 0 24 24"><path fill="#fff" d="M4 2v20l16-10z"/></svg></div>
-      <div>
-        <div style="font-weight:800">XEVideo</div>
-        <div style="font-size:12px;color:var(--muted)">Black Theme • Video Platform</div>
-      </div>
-    </div>
+<div class="bg"></div>
 
-    <div class="search" role="search">
-      <input id="q" placeholder="Search videos, creators, tags..." aria-label="Search" />
-      <button id="searchBtn">Search</button>
-    </div>
-
-    <div class="top-actions">
-      <button class="btn" id="openUpload">Upload</button>
-      <button class="btn" id="openCreator">Creator</button>
-      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(180deg,#222,#000);display:grid;place-items:center">U</div>
-    </div>
-  </header>
-
-  <!-- sidebar -->
-  <nav class="sidebar" aria-label="Main navigation">
-    <div class="nav-item active">Home</div>
-    <div class="nav-item" id="navTrending">Trending</div>
-    <div class="nav-item" id="navSubscriptions">Subscriptions</div>
-
-    <div class="section-title">Categories</div>
-    <div class="nav-item cat" data-cat="Music">Music</div>
-    <div class="nav-item cat" data-cat="Gaming">Gaming</div>
-    <div class="nav-item cat" data-cat="Tech">Tech</div>
-    <div class="nav-item cat" data-cat="Education">Education</div>
-
-    <div class="section-title">Library</div>
-    <div class="nav-item" id="watchLaterBtn">Watch later</div>
-    <div class="nav-item" id="historyBtn">History</div>
-
-    <div style="height:20px"></div>
-    <div style="color:var(--muted);font-size:13px">© XEVideo</div>
-  </nav>
-
-  <!-- main -->
-  <main>
-    <div class="hero">
-      <div>
-        <h2 style="margin:0">Recommended</h2>
-        <div style="color:var(--muted);font-size:13px">High quality video playback • Upload & creator tools (demo)</div>
-      </div>
-      <div>
-        <div style="display:flex;gap:8px">
-          <div class="chip" id="filterAll">All</div>
-          <div class="chip" id="filterHD">HD</div>
-          <div class="chip" id="filterLive">Live</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Video grid -->
-    <section class="grid" id="grid" aria-label="Videos"></section>
-
-    <!-- Creator dashboard preview -->
-    <div style="margin-top:18px;display:flex;gap:12px;flex-wrap:wrap">
-      <div class="panel" style="flex:1;min-width:240px">
-        <h3 style="margin:0 0 8px 0">Creator Dashboard (Demo)</h3>
-        <div class="stats">
-          <div class="stat">Views<br><strong id="statViews">0</strong></div>
-          <div class="stat">Subs<br><strong id="statSubs">0</strong></div>
-        </div>
-        <div style="margin-top:8px;color:var(--muted);font-size:13px">Audience retention & traffic are simulated in this demo.</div>
-      </div>
-
-      <div class="panel" style="width:360px">
-        <h3 style="margin:0 0 8px 0">Admin (Demo)</h3>
-        <div class="admin-list" id="adminList">
-          <!-- rows -->
-        </div>
-      </div>
-    </div>
-
-  </main>
+<!-- FLASH MESSAGE -->
+<div class="flash-box">
+    🚀 Premium YouTube-Level Video Platform Source Code For Sale – **$50 Million USD**  
+    Click email below to contact & purchase.
 </div>
 
-<!-- Flash sale banner -->
-<div class="flash" id="flash" role="region" aria-label="Sale banner" style="display:none">
-  <div class="flash-inner" role="note">
-    <div style="display:flex;gap:10px;align-items:center"><strong style="color:#ffd54f">🔥 For sale</strong><div>This site is for sale — asking price <strong>$50,000,000</strong></div></div>
-    <div style="flex:1"></div>
-    <button class="flash-cta" id="contactBtn">Contact</button>
-    <button class="flash-close" id="flashClose" aria-label="Close">✕</button>
-  </div>
+<!-- CLOCKS -->
+<div class="clock-container">
+
+    <div class="clock-box">
+        <div class="clock" id="usaClock"></div>
+        <div class="label">USA (New York)</div>
+    </div>
+
+    <div class="clock-box">
+        <div class="clock" id="indiaClock"></div>
+        <div class="label">India (IST)</div>
+    </div>
+
+    <div class="clock-box">
+        <div class="clock" id="ausClock"></div>
+        <div class="label">Australia (Sydney)</div>
+    </div>
+
+    <div class="clock-box">
+        <div class="clock" id="japanClock"></div>
+        <div class="label">Japan (Tokyo)</div>
+    </div>
+
 </div>
 
-<!-- Contact panel -->
-<div class="contact" id="contactPanel" aria-hidden="true">
-  <h3 style="margin:0 0 8px 0">Interested in buying?</h3>
-  <p style="color:var(--muted);margin:0 0 12px">Asking price: <strong>$50,000,000</strong></p>
-  <div style="margin-bottom:12px">
-    <div style="color:var(--muted);font-size:13px">Contact email</div>
-    <div style="font-weight:800">k1000fish@gmail.com</div>
-  </div>
-  <div style="display:flex;gap:8px">
-    <a class="mailto" id="mailto" href="mailto:k1000fish@gmail.com?subject=Inquiry%20about%20XEVideo">Email seller</a>
-    <button class="btn" id="closeContact">Close</button>
-  </div>
-</div>
-
-<!-- Upload modal -->
-<div id="uploadModal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:linear-gradient(180deg,rgba(0,0,0,0.6),rgba(0,0,0,0.9));z-index:210;padding:20px">
-  <div style="background:var(--panel);padding:18px;border-radius:10px;width:760px;max-width:96%">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h3 style="margin:0">Upload Video (Demo)</h3>
-      <button class="btn" id="closeUpload">Close</button>
-    </div>
-    <div class="upload-area" id="uploadArea">Drag & drop mp4/mov/mkv here or <input type="file" id="fileInput" accept="video/*" style="display:inline-block;margin-left:6px"/></div>
-
-    <div style="display:flex;gap:10px;margin-top:12px">
-      <input id="upTitle" placeholder="Video title" style="flex:1;padding:10px;border-radius:8px;border:none;background:#0b0b0b;color:#fff" />
-      <select id="upQuality" style="padding:10px;border-radius:8px;border:none;background:#0b0b0b;color:#fff">
-        <option>720p</option><option>1080p</option><option>4K</option>
-      </select>
-      <button class="btn" id="doUpload">Upload</button>
-    </div>
-    <div style="color:var(--muted);font-size:13px;margin-top:8px">Files are stored in browser for demo only. Connect backend to enable real uploads.</div>
-  </div>
-</div>
-
-<!-- Watch modal -->
-<div class="modal" id="watchModal" aria-hidden="true">
-  <div class="player" role="dialog" aria-modal="true" style="max-width:1100px">
-    <div class="vtop">
-      <div><strong id="videoTitle">Title</strong><div style="color:var(--muted);font-size:13px" id="videoMeta"></div></div>
-      <div>
-        <button class="btn" id="closeWatch">Close</button>
-      </div>
-    </div>
-    <div>
-      <video id="mainVideo" controls playsinline crossorigin="anonymous" style="background:#000">
-        <!-- source set dynamically -->
-      </video>
-    </div>
-    <div class="controls">
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn" id="likeBtn">❤ <span id="likeCount">0</span></button>
-        <button class="btn" id="saveBtn">Save</button>
-        <button class="btn" id="reportBtn">Report</button>
-        <select id="qualitySelect" style="padding:6px;border-radius:6px;background:#0b0b0b;color:#fff;border:1px solid rgba(255,255,255,0.03)">
-          <option value="360">360p</option><option value="480">480p</option><option value="720" selected>720p</option><option value="1080">1080p</option><option value="2160">4K</option>
-        </select>
-        <select id="speedSelect" style="padding:6px;border-radius:6px;background:#0b0b0b;color:#fff;border:1px solid rgba(255,255,255,0.03)">
-          <option>0.25</option><option>0.5</option><option>0.75</option><option selected>1</option><option>1.25</option><option>1.5</option><option>2</option>
-        </select>
-        <button class="btn" id="pipBtn">PiP</button>
-      </div>
-      <div style="color:var(--muted)">Views: <span id="views">0</span></div>
-    </div>
-
-    <!-- comments -->
-    <div class="comments" id="commentsSection">
-      <div style="display:flex;gap:8px;margin-bottom:8px">
-        <input id="cuser" placeholder="Your name" style="flex:0 0 160px;padding:8px;border-radius:8px;border:none;background:#0b0b0b;color:#fff" />
-        <input id="cmsg" placeholder="Add a public comment..." style="flex:1;padding:8px;border-radius:8px;border:none;background:#0b0b0b;color:#fff" />
-        <button class="btn" id="postComment">Comment</button>
-      </div>
-      <div id="commentsList"></div>
-    </div>
-  </div>
+<!-- CONTACT -->
+<div class="contact">
+    📩 Contact to Purchase:  
+    <a href="mailto:k1000fish@gmail.com">k1000fish@gmail.com</a>
 </div>
 
 <script>
-/* Demo dataset and local state (persistent via localStorage) */
-(() => {
-  // initial dataset: add many demo videos to showcase UI
-  const DEMO = [
-    {id:'a1',title:'Goa Travel Vlog — Sunrise to Sunset',creator:'TravelWithMe',duration:'12:34',views:51234,quality:['360','720','1080'],src:''},
-    {id:'a2',title:'Easy Home Workout for Beginners',creator:'FitLife',duration:'8:12',views:14321,quality:['360','720'],src:''},
-    {id:'a3',title:'ReactJS Tutorial — Build a Video App',creator:'CodeCraft',duration:'22:10',views:9234,quality:['360','720','1080'],src:''},
-    {id:'a4',title:'DJI Mavic Air 2 Review',creator:'DroneWorld',duration:'18:44',views:410000,quality:['360','720','1080','2160'],src:''},
-    {id:'a5',title:'Cooking: Authentic Mexican Tacos',creator:'ChefRosa',duration:'9:20',views:7321,quality:['360','720'],src:''}
-  ];
-  // storage keys
-  const K_VIDEOS = 'xev_videos';
-  const K_LIKES = 'xev_likes';
-  const K_HISTORY = 'xev_history';
-  const K_PLAYLISTS = 'xev_playlists';
-  const K_COMMENTS = 'xev_comments';
-  const K_SUBS = 'xev_subs';
-  // load or init
-  const videos = JSON.parse(localStorage.getItem(K_VIDEOS) || 'null') || DEMO;
-  if(!localStorage.getItem(K_VIDEOS)) localStorage.setItem(K_VIDEOS, JSON.stringify(videos));
-  function setVideos(){ localStorage.setItem(K_VIDEOS, JSON.stringify(videos)) }
-  function getLikes(){ return JSON.parse(localStorage.getItem(K_LIKES) || '{}') }
-  function setLikes(s){ localStorage.setItem(K_LIKES, JSON.stringify(s)) }
-  function getHistory(){ return JSON.parse(localStorage.getItem(K_HISTORY) || '[]') }
-  function setHistory(h){ localStorage.setItem(K_HISTORY, JSON.stringify(h)) }
-  function getPlaylists(){ return JSON.parse(localStorage.getItem(K_PLAYLISTS) || '{}') }
-  function setPlaylists(p){ localStorage.setItem(K_PLAYLISTS, JSON.stringify(p)) }
-  function getComments(){ return JSON.parse(localStorage.getItem(K_COMMENTS) || '{}') }
-  function setComments(c){ localStorage.setItem(K_COMMENTS, JSON.stringify(c)) }
-  function getSubs(){ return JSON.parse(localStorage.getItem(K_SUBS) || '[]') }
-  function setSubs(s){ localStorage.setItem(K_SUBS, JSON.stringify(s)) }
+function createClock(elementId, offsetHours) {
+    const clock = document.getElementById(elementId);
 
-  // UI references
-  const grid = document.getElementById('grid');
-  const searchBtn = document.getElementById('searchBtn');
-  const qInput = document.getElementById('q');
-  const flash = document.getElementById('flash');
-  const flashClose = document.getElementById('flashClose');
-  const contactBtn = document.getElementById('contactBtn');
-  const contactPanel = document.getElementById('contactPanel');
-  const closeContact = document.getElementById('closeContact');
-  const mailto = document.getElementById('mailto');
-  const openUpload = document.getElementById('openUpload'); const uploadModal = document.getElementById('uploadModal');
-  const closeUpload = document.getElementById('closeUpload');
-  const fileInput = document.getElementById('fileInput');
-  const uploadArea = document.getElementById('uploadArea');
-  const doUpload = document.getElementById('doUpload'); const upTitle = document.getElementById('upTitle'); const upQuality = document.getElementById('upQuality');
-  const watchModal = document.getElementById('watchModal'); const mainVideo = document.getElementById('mainVideo');
-  const videoTitle = document.getElementById('videoTitle'); const videoMeta = document.getElementById('videoMeta');
-  const closeWatch = document.getElementById('closeWatch'); const likeBtn = document.getElementById('likeBtn'); const likeCount = document.getElementById('likeCount');
-  const saveBtn = document.getElementById('saveBtn'); const reportBtn = document.getElementById('reportBtn'); const qualitySelect = document.getElementById('qualitySelect');
-  const speedSelect = document.getElementById('speedSelect'); const pipBtn = document.getElementById('pipBtn');
-  const commentsList = document.getElementById('commentsList'); const cuser = document.getElementById('cuser'); const cmsg = document.getElementById('cmsg'); const postComment = document.getElementById('postComment');
-  const statViews = document.getElementById('statViews'); const statSubs = document.getElementById('statSubs'); const adminList = document.getElementById('adminList');
-  const watchLaterBtn = document.getElementById('watchLaterBtn'); const historyBtn = document.getElementById('historyBtn');
-  const openCreator = document.getElementById('openCreator');
+    // Create clock hands
+    const hourHand = document.createElement("div");
+    hourHand.classList.add("hand", "hour-hand");
 
-  // show flash unless closed
-  if(localStorage.getItem('xev_flash_closed') !== '1'){ flash.style.display='flex' }
-  flashClose.addEventListener('click', ()=>{ flash.style.display='none'; localStorage.setItem('xev_flash_closed','1') })
-  contactBtn.addEventListener('click', ()=>{ contactPanel.classList.add('open') })
-  closeContact.addEventListener('click', ()=>{ contactPanel.classList.remove('open') })
+    const minuteHand = document.createElement("div");
+    minuteHand.classList.add("hand", "minute-hand");
 
-  // render admin rows
-  function renderAdmin(){
-    adminList.innerHTML='';
-    // mock flagged videos
-    videos.slice(0,3).forEach(v=>{
-      const row = document.createElement('div'); row.className='admin-row';
-      row.innerHTML = `<div>${v.title}</div><div><button class="btn" data-id="${v.id}">Delete</button></div>`;
-      adminList.appendChild(row);
-      row.querySelector('button').addEventListener('click', (e)=>{ // delete demo
-        const id = e.target.dataset.id; const idx = videos.findIndex(x=>x.id===id); if(idx>-1){videos.splice(idx,1); setVideos(); renderGrid(); renderAdmin(); alert('Deleted (demo)') }
-      });
-    });
-  }
+    const secondHand = document.createElement("div");
+    secondHand.classList.add("hand", "second-hand");
 
-  // render cards
-  function renderGrid(list = videos){
-    grid.innerHTML=''; let totalViews=0;
-    list.forEach(v=>{
-      totalViews += v.views || 0;
-      const card = document.createElement('article'); card.className='card';
-      card.innerHTML = `<div class="thumb" data-id="${v.id}" style="background:linear-gradient(180deg,#111,#000)"><div style="padding:8px;background:rgba(255,255,255,0.04);border-radius:6px;color:#fff;font-weight:700">${v.creator}</div><div style="margin-left:auto;color:#000;background:#fff;border-radius:6px;padding:4px 8px">${v.duration}</div></div>
-        <div class="meta"><div class="avatar"></div><div style="flex:1"><div class="title">${escape(v.title)}</div><div class="sub">${escape(v.creator)} • ${fmt(v.views)} views</div></div><div style="color:var(--muted)">•••</div></div>`;
-      grid.appendChild(card);
-      card.querySelector('.thumb').addEventListener('click', ()=>openPlayer(v));
-    });
-    statViews.textContent = fmt(totalViews);
-    statSubs.textContent = getSubs().length;
-  }
+    clock.appendChild(hourHand);
+    clock.appendChild(minuteHand);
+    clock.appendChild(secondHand);
 
-  function fmt(n){ if(!n) return '0'; if(n>=1e6) return (n/1e6).toFixed(1)+'M'; if(n>=1e3) return (n/1e3).toFixed(1)+'K'; return n }
-  function escape(s){ return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;') }
+    function updateClock() {
+        const now = new Date();
+        let utc = now.getTime() + now.getTimezoneOffset() * 60000;
+        let local = new Date(utc + offsetHours * 3600000);
 
-  // search
-  function doSearch(){ const q = (qInput.value||'').toLowerCase().trim(); if(!q) return renderGrid(); renderGrid(videos.filter(v=>v.title.toLowerCase().includes(q) || v.creator.toLowerCase().includes(q))) }
-  searchBtn.addEventListener('click', doSearch); qInput.addEventListener('keydown', e=>{ if(e.key==='Enter') doSearch() });
+        const hours = local.getHours() % 12;
+        const minutes = local.getMinutes();
+        const seconds = local.getSeconds();
 
-  // upload
-  openUpload.addEventListener('click', ()=>uploadModal.style.display='flex');
-  closeUpload.addEventListener('click', ()=>uploadModal.style.display='none');
-
-  // drag & drop support
-  uploadArea.addEventListener('dragover', e=>{e.preventDefault(); uploadArea.classList.add('drag')});
-  uploadArea.addEventListener('dragleave', e=>{uploadArea.classList.remove('drag')});
-  uploadArea.addEventListener('drop', e=>{ e.preventDefault(); uploadArea.classList.remove('drag'); const f = e.dataTransfer.files[0]; handleFile(f) });
-
-  fileInput.addEventListener('change', (e)=>{ const f = e.target.files[0]; handleFile(f) });
-
-  function handleFile(f){
-    if(!f) return alert('No file'); if(!f.type.startsWith('video')) return alert('Please select a video file');
-    const reader = new FileReader(); reader.onload = function(){
-      // store small demo video as DataURL (not suitable for large files)
-      const id = 'v'+Date.now();
-      const newV = {id,title: upTitle.value||f.name,creator:'You',duration:'--:--',views:0,quality:[upQuality.value],src:reader.result};
-      videos.unshift(newV); setVideos(); renderGrid(); uploadModal.style.display='none'; alert('Uploaded (demo: stored in browser). For production, send file to server.');
-    };
-    reader.readAsDataURL(f);
-  }
-
-  doUpload.addEventListener('click', ()=>{ if(!fileInput.files[0]) return alert('Choose a file or drag & drop'); handleFile(fileInput.files[0]) });
-
-  // player open
-  let current = null;
-  function openPlayer(v){
-    current = v;
-    watchModal.classList.add('open'); watchModal.style.display='flex';
-    watchModal.setAttribute('aria-hidden','false');
-    videoTitle.textContent = v.title;
-    videoMeta.textContent = v.creator + ' • ' + fmt(v.views) + ' views';
-    // set video src if available
-    if(v.src){
-      mainVideo.src = v.src;
-      mainVideo.style.display='block';
-    } else {
-      // no src: show a black background and fake poster (we still keep video element hidden to avoid broken source)
-      mainVideo.style.display='none';
-      mainVideo.src = '';
+        hourHand.style.transform = `rotate(${hours * 30 + minutes / 2}deg)`;
+        minuteHand.style.transform = `rotate(${minutes * 6}deg)`;
+        secondHand.style.transform = `rotate(${seconds * 6}deg)`;
     }
-    // update likes & metrics
-    likeCount.textContent = (getLikes()[v.id] ? 1 : 0);
-    document.getElementById('views').textContent = fmt((v.views||0) + 1);
-    // comments
-    renderComments(v.id);
-    // add to history
-    const h = getHistory(); h.unshift({id:v.id,title:v.title,at:Date.now()}); setHistory(h.slice(0,100)); // keep last 100
-    // update creator stats
-    statViews.textContent = fmt( (parseInt(statViews.textContent.replace(/[^0-9]/g,''))||0) + 1 );
-  }
 
-  closeWatch.addEventListener('click', closePlayer);
-  function closePlayer(){ watchModal.classList.remove('open'); watchModal.style.display='none'; mainVideo.pause(); mainVideo.src=''; }
+    setInterval(updateClock, 1000);
+    updateClock();
+}
 
-  // likes
-  likeBtn.addEventListener('click', ()=>{
-    if(!current) return;
-    const L = getLikes(); if(L[current.id]){ delete L[current.id]; } else L[current.id]=true; setLikes(L); likeCount.textContent = (L[current.id]?1:0);
-  });
+// USA (New York) = UTC -5 (approx without DST)
+createClock("usaClock", -5);
 
-  // save (watch later/playlist)
-  saveBtn.addEventListener('click', ()=>{
-    if(!current) return;
-    const p = getPlaylists(); if(!p['Watch Later']) p['Watch Later'] = []; if(!p['Watch Later'].includes(current.id)) { p['Watch Later'].push(current.id); setPlaylists(p); alert('Saved to Watch Later') } else alert('Already in Watch Later');
-  });
+// India = UTC +5.5
+createClock("indiaClock", 5.5);
 
-  // reporting (demo)
-  reportBtn.addEventListener('click', ()=>{ if(!current) return alert('Reported (demo). In production send report to backend.'); });
+// Australia (Sydney) = UTC +11
+createClock("ausClock", 11);
 
-  // quality & speed selectors (demo behavior)
-  qualitySelect.addEventListener('change', ()=>{ alert('Quality switched to '+qualitySelect.value+'p (demo). In production, load appropriate resolution stream.'); });
-  speedSelect.addEventListener('change', ()=>{ mainVideo.playbackRate = parseFloat(speedSelect.value); });
-
-  // PiP (only works when video playing and browser supports)
-  pipBtn.addEventListener('click', async ()=>{
-    if(document.pictureInPictureElement) await document.exitPictureInPicture();
-    else if(mainVideo.requestPictureInPicture) { try { await mainVideo.requestPictureInPicture(); } catch(e){ alert('PiP unavailable: '+e.message) } }
-  });
-
-  // comments (localStorage)
-  function renderComments(vid){
-    const all = getComments(); const arr = all[vid] || [];
-    commentsList.innerHTML = arr.map(c=>`<div class="comment"><div class="meta"><strong>${escape(c.user)}</strong><span style="margin-left:8px;color:var(--muted)">${new Date(c.at).toLocaleString()}</span></div><div style="margin-top:6px">${escape(c.msg)}</div></div>`).join('');
-  }
-  postComment.addEventListener('click', ()=>{
-    if(!current) return alert('Open a video first'); const user = cuser.value || 'Guest'; const msg = cmsg.value.trim(); if(!msg) return;
-    const all = getComments(); if(!all[current.id]) all[current.id]=[]; all[current.id].unshift({user, msg, at:Date.now()}); setComments(all); cmsg.value=''; renderComments(current.id);
-  });
-
-  // watch later & history
-  watchLaterBtn.addEventListener('click', ()=>{
-    const p = getPlaylists(); const arr = p['Watch Later']||[]; if(!arr.length) return alert('Watch Later empty'); const list = arr.map(id => videos.find(v=>v.id===id).title).join('\\n'); alert('Watch Later:\\n'+list);
-  });
-  historyBtn.addEventListener('click', ()=>{ const h = getHistory(); if(!h.length) return alert('History empty'); alert(h.slice(0,20).map(it=>it.title).join('\\n')) });
-
-  // creator open (mock analytics)
-  openCreator.addEventListener('click', ()=>{ alert('Creator Dashboard (demo) — analytics are simulated. For real analytics connect server and instrumentation.)' ) });
-
-  // subscriptions demo
-  document.querySelectorAll('.cat').forEach(el=>el.addEventListener('click', (e)=>{ const cat = e.currentTarget.dataset.cat; renderGrid(videos.filter(v=>v.title.toLowerCase().includes(cat.toLowerCase()) || v.creator.toLowerCase().includes(cat.toLowerCase())) ) }));
-
-  // render initial
-  renderGrid();
-  renderAdmin();
-
-  // deep link to #video=id
-  function handleHash(){
-    const h = location.hash || '';
-    if(h.startsWith('#video=')){ const id = h.split('=')[1]; const v = videos.find(x=>x.id===id); if(v) openPlayer(v); }
-  }
-  window.addEventListener('hashchange', handleHash);
-  handleHash();
-
-  // helper localstorage getters
-  function getLikes(){ return JSON.parse(localStorage.getItem(K_LIKES) || '{}') }
-  function getHistory(){ return JSON.parse(localStorage.getItem(K_HISTORY) || '[]') }
-  function getPlaylists(){ return JSON.parse(localStorage.getItem(K_PLAYLISTS) || '{}') }
-  function getComments(){ return JSON.parse(localStorage.getItem(K_COMMENTS) || '{}') }
-  function getSubs(){ return JSON.parse(localStorage.getItem(K_SUBS) || '[]') }
-
-  // small utility
-  function escape(s){ return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;') }
-})();
+// Japan = UTC +9
+createClock("japanClock", 9);
 </script>
+
 </body>
 </html>
