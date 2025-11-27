@@ -1,531 +1,473 @@
-/*
-XEVideo - Single-file Node.js YouTube-like app
-Filename: server.js
-Purpose: Minimal but functional YouTube-like website supporting:
- - User register / login (JWT)
- - Video upload (multer) stored on disk
- - Video streaming with Range headers
- - Like/unlike, comments
- - Subscribe/unsubscribe
- - Search, share links
- - Simple frontend pages rendered via templates in routes (no template engine required)
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>XEVideo — Modern Dark Video Portal</title>
 
-This is one-file app. Also included below is a package.json block and README usage instructions.
-
-IMPORTANT: This is a starter clone — not production-ready. For production, add input validation, rate-limiting,
-CSRF protection, email verification, cloud storage (S3), HTTPS, streaming optimizations, background processing,
-and stronger auth/session handling.
-
---- package.json ---
-{
-  "name": "xevideo",
-  "version": "1.0.0",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "better-sqlite3": "^8.0.0",
-    "bcrypt": "^5.1.0",
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.0",
-    "mime": "^3.0.0",
-    "multer": "^1.4.5"
+<!-- Basic reset + fonts -->
+<style>
+  :root{
+    --bg:#0b0c0d;
+    --panel:#0f1113;
+    --muted:#9aa3ad;
+    --accent:#00b894; /* accent for buttons */
+    --card:#111315;
+    --glass: rgba(255,255,255,0.03);
+    --banner-bg: linear-gradient(90deg,#101317,#0b1a1a);
   }
-}
+  html,body{height:100%;margin:0;background:var(--bg);color:#eee;font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  button{font:inherit}
 
---- How to use ---
-1. Ensure Node.js >= 16 is installed.
-2. Create a directory, save this file as server.js and create package.json using the block above.
-3. npm install
-4. Create uploads/ and thumbs/ directories: mkdir uploads thumbs
-5. Set env var JWT_SECRET (or it will default to 'change_this_secret')
-6. node server.js
-7. Open http://localhost:3000 and register a user.
-
---- server.js code starts below ---
-*/
-
-const express = require('express');
-const bodyParser = require('body-parser');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const Database = require('better-sqlite3');
-const mime = require('mime');
-const cors = require('cors');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
-
-// storage
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, UPLOAD_DIR);
-  },
-  filename: function (req, file, cb) {
-    // unique filename
-    const ext = path.extname(file.originalname);
-    const id = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, `${id}${ext}`);
+  /* Layout */
+  .app {
+    min-height:100vh;
+    display:grid;
+    grid-template-columns: 260px 1fr;
+    grid-template-rows: auto 1fr;
+    gap:0;
   }
-});
-const upload = multer({ storage });
 
-app.use(cors());
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use('/uploads', express.static(UPLOAD_DIR));
-app.use('/static', express.static(path.join(__dirname, 'static')));
-
-// simple DB
-const db = new Database(path.join(__dirname, 'xevideo.db'));
-
-// init tables
-db.exec(`
-CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT UNIQUE,
-  password_hash TEXT,
-  created_at INTEGER
-);
-CREATE TABLE IF NOT EXISTS videos (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER,
-  title TEXT,
-  description TEXT,
-  filename TEXT,
-  original_name TEXT,
-  mime TEXT,
-  views INTEGER DEFAULT 0,
-  created_at INTEGER,
-  FOREIGN KEY(user_id) REFERENCES users(id)
-);
-CREATE TABLE IF NOT EXISTS likes (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER,
-  video_id INTEGER
-);
-CREATE TABLE IF NOT EXISTS comments (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  user_id INTEGER,
-  video_id INTEGER,
-  text TEXT,
-  created_at INTEGER
-);
-CREATE TABLE IF NOT EXISTS subscriptions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  subscriber_id INTEGER,
-  channel_id INTEGER
-);
-`);
-
-// helper functions
-function createToken(user) {
-  return jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
-}
-
-function authMiddleware(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'Missing auth' });
-  const parts = auth.split(' ');
-  if (parts.length !== 2) return res.status(401).json({ error: 'Bad auth' });
-  const token = parts[1];
-  try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    req.user = payload;
-    next();
-  } catch (e) {
-    return res.status(401).json({ error: 'Invalid token' });
+  /* Topbar (spans both columns) */
+  header.topbar {
+    grid-column:1/-1;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    position:sticky; top:0; z-index:60;
+    backdrop-filter: blur(4px);
   }
-}
-
-// Routes: simple frontend and API
-app.get('/', (req, res) => {
-  // show a simple homepage listing recent videos
-  const videos = db.prepare('SELECT v.*, u.username FROM videos v JOIN users u ON u.id = v.user_id ORDER BY created_at DESC LIMIT 30').all();
-  let html = `<!doctype html><html><head><meta charset="utf-8"><title>XEVideo</title></head><body>
-  <h1>XEVideo - Home</h1>
-  <p><a href="/upload.html">Upload</a> • <a href="/register.html">Register</a> • <a href="/login.html">Login</a></p>
-  <div>`;
-  for (const v of videos) {
-    html += `<div style="margin:12px;padding:8px;border-bottom:1px solid #ddd;"><a href="/watch/${v.id}"><strong>${escapeHtml(v.title)}</strong></a>
-    <div>by ${escapeHtml(v.username)} • ${v.views} views</div>
-    <video width="320" height="180" controls preload="metadata">
-      <source src="/stream/${v.id}" type="${v.mime}">
-      Your browser does not support the video tag.
-    </video>
-    </div>`;
+  .logo {
+    display:flex; gap:10px; align-items:center;
+    font-weight:700; letter-spacing:0.2px;
   }
-  html += `</div>
-  <script>/* small client scripts could go here */</script>
-  </body></html>`;
-  res.send(html);
-});
-
-// serve simple static pages for register/login/upload
-app.get('/register.html', (req, res) => {
-  res.send(htmlRegister());
-});
-app.get('/login.html', (req, res) => {
-  res.send(htmlLogin());
-});
-app.get('/upload.html', (req, res) => {
-  res.send(htmlUpload());
-});
-
-// API: register
-app.post('/api/register', async (req, res) => {
-  const { username, password } = req.body;
-  if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
-  const hash = await bcrypt.hash(password, 10);
-  try {
-    const info = db.prepare('INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)').run(username, hash, Date.now());
-    const user = { id: info.lastInsertRowid, username };
-    const token = createToken(user);
-    res.json({ token, user });
-  } catch (e) {
-    res.status(400).json({ error: 'Username taken' });
+  .logo .mark{
+    width:36px;height:36px;border-radius:6px;
+    display:inline-grid;place-items:center;
+    background:linear-gradient(180deg,#000,#111);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02);
   }
-});
+  .logo .mark svg{fill:#fff}
 
-// API: login
-app.post('/api/login', async (req, res) => {
-  const { username, password } = req.body;
-  const row = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
-  if (!row) return res.status(400).json({ error: 'Invalid' });
-  const ok = await bcrypt.compare(password, row.password_hash);
-  if (!ok) return res.status(400).json({ error: 'Invalid' });
-  const user = { id: row.id, username: row.username };
-  const token = createToken(user);
-  res.json({ token, user });
-});
+  .search {
+    flex:1; display:flex; max-width:850px;
+  }
+  .search input{
+    width:100%; padding:10px 14px; border-radius:8px 0 0 8px; border: none;
+    background: #0c0d0e; color: #fff; outline: none; box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+  }
+  .search button{
+    padding:10px 14px; border-radius:0 8px 8px 0; border:none; cursor:pointer; background:var(--accent); color:#00110a; font-weight:600;
+  }
+  .top-actions{display:flex;gap:10px;align-items:center;margin-left:8px}
 
-// API: upload video
-app.post('/api/upload', authMiddleware, upload.single('video'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Missing file' });
-  const title = req.body.title || req.file.originalname;
-  const description = req.body.description || '';
-  const mimeType = req.file.mimetype || mime.getType(req.file.originalname) || 'video/mp4';
-  const info = db.prepare('INSERT INTO videos (user_id, title, description, filename, original_name, mime, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
-    .run(req.user.id, title, description, req.file.filename, req.file.originalname, mimeType, Date.now());
-  res.json({ ok: true, videoId: info.lastInsertRowid });
-});
+  /* Left sidebar */
+  nav.sidebar {
+    background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent);
+    border-right:1px solid rgba(255,255,255,0.02);
+    padding:18px 12px; height:calc(100vh - 64px); overflow:auto;
+  }
+  .nav-item{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;margin-bottom:6px;color:var(--muted);cursor:pointer}
+  .nav-item.active{background:var(--glass); color:#fff}
+  .section-title{margin:14px 6px 6px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:0.9px}
 
-// Serve watch page
-app.get('/watch/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const v = db.prepare('SELECT v.*, u.username FROM videos v JOIN users u ON u.id = v.user_id WHERE v.id = ?').get(id);
-  if (!v) return res.status(404).send('Not found');
-  // increment view (naive)
-  db.prepare('UPDATE videos SET views = views + 1 WHERE id = ?').run(id);
-  const comments = db.prepare('SELECT c.*, u.username FROM comments c JOIN users u ON u.id = c.user_id WHERE c.video_id = ? ORDER BY c.created_at DESC').all(id);
-  const likeCount = db.prepare('SELECT COUNT(*) as c FROM likes WHERE video_id = ?').get(id).c;
-  let html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(v.title)}</title></head><body>
-    <a href="/">Home</a> | <a href="/upload.html">Upload</a>
-    <h1>${escapeHtml(v.title)}</h1>
-    <div>By ${escapeHtml(v.username)} • ${v.views + 1} views</div>
-    <video id="player" width="720" height="405" controls>
-      <source src="/stream/${v.id}" type="${v.mime}">
-    </video>
-    <div>
-      <button id="likeBtn">Like (${likeCount})</button>
-      <button id="subscribeBtn">Subscribe</button>
-      <button id="shareBtn">Share</button>
+  /* Main content */
+  main.content { padding:18px; overflow:auto; height:calc(100vh - 64px) }
+
+  .hero {
+    display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;
+  }
+  .filters { display:flex; gap:8px; flex-wrap:wrap}
+  .chip{background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:999px;font-size:13px;color:var(--muted);cursor:pointer}
+  .chip.active{background:linear-gradient(90deg,#17202a,#081116); color:#fff; border:1px solid rgba(255,255,255,0.03)}
+
+  /* Video grid */
+  .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap:14px; align-items:start }
+  .card {
+    background:var(--card); border-radius:12px; overflow:hidden;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  }
+  .thumb {
+    position:relative; aspect-ratio:16/9; background:linear-gradient(180deg,#0f1213,#0b0c0d);
+    display:flex; align-items:end; padding:10px;
+  }
+  .thumb .duration { background:rgba(0,0,0,0.6); padding:4px 6px;border-radius:4px;font-size:12px; color:#fff; margin-left:auto }
+  .meta { padding:12px 12px 16px; display:flex; gap:10px }
+  .meta .avatar { width:44px;height:44px;border-radius:999px;background:linear-gradient(180deg,#222,#000); flex:0 0 44px}
+  .meta .info {flex:1}
+  .meta .title{font-weight:600;color:#fff;margin-bottom:6px}
+  .meta .sub{color:var(--muted);font-size:13px}
+  .meta .dots{color:var(--muted);cursor:pointer}
+
+  /* Watch modal */
+  .modal {
+    position:fixed; inset:0; display:none; z-index:120; align-items:center; justify-content:center; padding:28px;
+    background: linear-gradient(180deg, rgba(1,1,1,0.6), rgba(0,0,0,0.85));
+  }
+  .modal.open{display:flex}
+  .player {
+    width:min(1200px,98%); background:var(--panel); border-radius:12px; overflow:hidden;
+  }
+  .player .vtop { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:rgba(255,255,255,0.01) }
+  .player video{width:100%; height:auto; display:block; background:#000}
+  .controls { padding:12px 16px; display:flex; gap:10px; align-items:center; justify-content:space-between; color:var(--muted) }
+  .controls .actions button{background:transparent;border:1px solid rgba(255,255,255,0.04); color:#fff;padding:8px 10px;border-radius:8px;cursor:pointer}
+
+  /* flash sale banner (top fixed) */
+  .flash-banner{
+    position:fixed; left:0; right:0; top:48px; margin:auto; z-index:200; display:flex; align-items:center; justify-content:center;
+    pointer-events:auto;
+  }
+  .flash-inner{
+    background:var(--banner-bg); color:#fff; padding:10px 16px; border-radius:8px; display:flex; gap:12px; align-items:center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    max-width:1200px; width:calc(100% - 40px);
+  }
+  .flash-text{font-weight:600}
+  .flash-cta{background:#fff;color:#111;padding:8px 12px;border-radius:8px;cursor:pointer}
+  .flash-close{background:transparent;border:none;color:#ddd;cursor:pointer;font-size:18px}
+
+  /* Contact panel (hidden area in-page) */
+  .contact-panel{display:none; position:fixed; right:18px; bottom:18px; background:var(--panel); border-radius:14px; padding:14px; z-index:220; width:320px; box-shadow: 0 12px 40px rgba(0,0,0,0.6)}
+  .contact-panel.open{display:block}
+  .contact-panel h3{margin:0 0 8px 0}
+  .contact-row{display:flex; gap:8px; align-items:center;margin-bottom:8px}
+  .mailto {display:inline-block;padding:8px 12px;background:var(--accent);color:#00110a;border-radius:8px;font-weight:700; cursor:pointer}
+
+  /* small screens */
+  @media (max-width:920px){
+    .app{grid-template-columns: 1fr; grid-template-rows:auto 1fr}
+    nav.sidebar{display:none}
+    header.topbar{position:sticky}
+    .flash-banner{top:64px}
+    .contact-panel{right:8px;left:8px;width:auto}
+  }
+
+  /* tiny details */
+  footer{color:var(--muted);font-size:13px;padding:36px 6px 120px}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Top bar -->
+  <header class="topbar" role="banner">
+    <div class="logo" aria-hidden="true">
+      <div class="mark" title="XEVideo">
+        <!-- small play icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M5 3v18l15-9z"/></svg>
+      </div>
+      <div style="line-height:1">
+        <div style="font-size:16px">XEVideo</div>
+        <div style="font-size:11px;color:var(--muted)">Dark theme • Video Portal</div>
+      </div>
     </div>
-    <h3>Description</h3>
-    <p>${escapeHtml(v.description)}</p>
-    <h3>Comments</h3>
-    <div id="comments">`;
-  for (const c of comments) {
-    html += `<div style="border-top:1px solid #eee;padding:6px;"><strong>${escapeHtml(c.username)}</strong>: ${escapeHtml(c.text)}</div>`;
-  }
-  html += `</div>
-    <div id="commentForm">
-      <textarea id="commentText" rows="3" cols="60"></textarea><br>
-      <button id="postComment">Post Comment</button>
+
+    <div class="search" role="search">
+      <input id="searchInput" placeholder="Search videos, creators, topics..." aria-label="Search videos"/>
+      <button id="searchBtn" aria-label="Search">Search</button>
     </div>
-    <script>
-      // minimal client logic - uses token in localStorage
-      function getAuth(){return localStorage.getItem('xev_token');}
-      document.getElementById('likeBtn').onclick = async function(){
-        const token = getAuth();
-        if(!token){alert('Please login'); return}
-        const res = await fetch('/api/like/${v.id}',{method:'POST',headers:{'Authorization':'Bearer '+token}});
-        const j = await res.json(); alert(j.ok ? 'Liked' : (j.error||'Error'));
-        location.reload();
-      }
-      document.getElementById('postComment').onclick = async function(){
-        const token = getAuth(); if(!token){alert('Login');return}
-        const text = document.getElementById('commentText').value.trim(); if(!text) return alert('Empty');
-        const res = await fetch('/api/comment/${v.id}',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({text})});
-        const j = await res.json(); if(j.ok) location.reload(); else alert(j.error||'err');
-      }
-      document.getElementById('shareBtn').onclick = function(){
-        const url = location.href; navigator.clipboard.writeText(url); alert('Link copied');
-      }
-      document.getElementById('subscribeBtn').onclick = async function(){
-        const token = getAuth(); if(!token){alert('Login');return}
-        const res = await fetch('/api/subscribe/${v.user_id}',{method:'POST',headers:{'Authorization':'Bearer '+token}});
-        const j = await res.json(); alert(j.ok ? 'Subscribed' : (j.error||'Error'));
-      }
-    </script>
-  </body></html>`;
-  res.send(html);
-});
 
-// stream route (supports range)
-app.get('/stream/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const v = db.prepare('SELECT * FROM videos WHERE id = ?').get(id);
-  if (!v) return res.status(404).send('Video not found');
-  const file = path.join(UPLOAD_DIR, v.filename);
-  const stat = fs.statSync(file);
-  const fileSize = stat.size;
-  const range = req.headers.range;
-  if (range) {
-    const parts = range.replace(/bytes=/, '').split('-');
-    const start = parseInt(parts[0], 10);
-    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-    const chunksize = (end - start) + 1;
-    const stream = fs.createReadStream(file, { start, end });
-    res.writeHead(206, {
-      'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-      'Accept-Ranges': 'bytes',
-      'Content-Length': chunksize,
-      'Content-Type': v.mime || 'video/mp4'
-    });
-    stream.pipe(res);
-  } else {
-    res.writeHead(200, { 'Content-Length': fileSize, 'Content-Type': v.mime || 'video/mp4' });
-    fs.createReadStream(file).pipe(res);
-  }
-});
+    <div class="top-actions" aria-hidden="true">
+      <button title="Upload" style="background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;cursor:pointer">Upload</button>
+      <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(180deg,#223,#000);display:grid;place-items:center">U</div>
+    </div>
+  </header>
 
-// like
-app.post('/api/like/:id', authMiddleware, (req, res) => {
-  const userId = req.user.id; const vid = Number(req.params.id);
-  const exists = db.prepare('SELECT * FROM likes WHERE user_id = ? AND video_id = ?').get(userId, vid);
-  if (exists) {
-    db.prepare('DELETE FROM likes WHERE id = ?').run(exists.id);
-    return res.json({ ok: true, action: 'unliked' });
-  }
-  db.prepare('INSERT INTO likes (user_id, video_id) VALUES (?,?)').run(userId, vid);
-  res.json({ ok: true, action: 'liked' });
-});
+  <!-- Sidebar -->
+  <nav class="sidebar" aria-label="Main">
+    <div class="nav-item active"><svg width="18" height="18" viewBox="0 0 24 24" style="opacity:.9;margin-left:6px"><path d="M10 16.5l6-4.5-6-4.5z"/></svg> Home</div>
+    <div class="nav-item"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg> Shorts</div>
 
-// comment
-app.post('/api/comment/:id', authMiddleware, (req, res) => {
-  const userId = req.user.id; const vid = Number(req.params.id); const text = req.body.text;
-  if (!text) return res.status(400).json({ error: 'Empty' });
-  db.prepare('INSERT INTO comments (user_id, video_id, text, created_at) VALUES (?,?,?,?)').run(userId, vid, text, Date.now());
-  res.json({ ok: true });
-});
+    <div class="section-title">Subscriptions</div>
+    <div class="nav-item"><div style="width:28px;height:28px;border-radius:999px;background:linear-gradient(180deg,#1b3,#003)"></div> ABP MAJHA</div>
+    <div class="nav-item"><div style="width:28px;height:28px;border-radius:999px;background:linear-gradient(180deg,#33a,#002)"></div> Curly Tales</div>
+    <div class="nav-item"><div style="width:28px;height:28px;border-radius:999px;background:linear-gradient(180deg,#a63,#100)"></div> Buildofy</div>
 
-// subscribe
-app.post('/api/subscribe/:channelId', authMiddleware, (req, res) => {
-  const subscriber = req.user.id; const channel = Number(req.params.channelId);
-  if (subscriber === channel) return res.status(400).json({ error: 'Cannot subscribe to yourself' });
-  const exists = db.prepare('SELECT * FROM subscriptions WHERE subscriber_id = ? AND channel_id = ?').get(subscriber, channel);
-  if (exists) {
-    db.prepare('DELETE FROM subscriptions WHERE id = ?').run(exists.id);
-    return res.json({ ok: true, action: 'unsubscribed' });
-  }
-  db.prepare('INSERT INTO subscriptions (subscriber_id, channel_id) VALUES (?,?)').run(subscriber, channel);
-  res.json({ ok: true, action: 'subscribed' });
-});
+    <div class="section-title">Library</div>
+    <div class="nav-item">History</div>
+    <div class="nav-item">Playlists</div>
+    <div class="nav-item">Watch later</div>
+    <div style="height:20px"></div>
+    <footer>© XEVideo</footer>
+  </nav>
 
-// search
-app.get('/search', (req, res) => {
-  const q = (req.query.q || '').trim();
-  if (!q) return res.redirect('/');
-  const rows = db.prepare("SELECT v.*, u.username FROM videos v JOIN users u ON u.id=v.user_id WHERE v.title LIKE '%' || ? || '%' OR v.description LIKE '%' || ? || '%' ORDER BY v.created_at DESC").all(q, q);
-  let html = '<!doctype html><html><head><meta charset="utf-8"><title>Search</title></head><body><a href="/">Home</a><h1>Search results for '+escapeHtml(q)+'</h1>';
-  for (const v of rows) html += `<div><a href="/watch/${v.id}">${escapeHtml(v.title)}</a> by ${escapeHtml(v.username)}</div>`;
-  html += '</body></html>';
-  res.send(html);
-});
+  <!-- Main content -->
+  <main class="content" id="mainContent" role="main">
 
-// helper safe escape
-function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    <!-- Hero / Filters -->
+    <div class="hero">
+      <h2 style="margin:0">Recommended</h2>
+      <div class="filters" aria-hidden="true">
+        <div class="chip active">All</div>
+        <div class="chip">Music</div>
+        <div class="chip">Gaming</div>
+        <div class="chip">Tech</div>
+        <div class="chip">Travel</div>
+        <div class="chip">Education</div>
+      </div>
+    </div>
 
-// Simple static pages content generators
-function htmlRegister(){
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Register - XEVideo</title></head><body>
-    <h1>Register</h1>
-    <form id="f"><input name="username" placeholder="username"><br><input name="password" type="password" placeholder="password"><br><button>Register</button></form>
-    <script>
-      document.getElementById('f').onsubmit = async function(e){e.preventDefault(); const f=new FormData(e.target); const res = await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:f.get('username'),password:f.get('password')})}); const j=await res.json(); if(j.token){localStorage.setItem('xev_token',j.token); alert('Registered'); location.href='/'} else alert(j.error||JSON.stringify(j));}
-    </script>
-  </body></html>`;
-}
-function htmlLogin(){
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Login - XEVideo</title></head><body>
-    <h1>Login</h1>
-    <form id="f"><input name="username" placeholder="username"><br><input name="password" type="password" placeholder="password"><br><button>Login</button></form>
-    <script>
-      document.getElementById('f').onsubmit = async function(e){e.preventDefault(); const f=new FormData(e.target); const res = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:f.get('username'),password:f.get('password')})}); const j=await res.json(); if(j.token){localStorage.setItem('xev_token',j.token); alert('Logged in'); location.href='/'} else alert(j.error||JSON.stringify(j));}
-    </script>
-  </body></html>`;
-}
-function htmlUpload(){
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Upload - XEVideo</title></head><body>
-    <h1>Upload Video</h1>
-    <form id="f"><input name="title" placeholder="Title"><br><textarea name="description" placeholder="Description"></textarea><br><input type="file" name="video"><br><button>Upload</button></form>
-    <script>
-      document.getElementById('f').onsubmit = async function(e){ e.preventDefault(); const token = localStorage.getItem('xev_token'); if(!token){return alert('Login first')}
-        const fd = new FormData(e.target); const res = await fetch('/api/upload',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd}); const j=await res.json(); if(j.ok){alert('Uploaded'); location.href='/watch/'+j.videoId} else alert(j.error||JSON.stringify(j)); }
-    </script>
-  </body></html>`;
-}
+    <!-- Video grid -->
+    <section class="grid" id="videoGrid" aria-label="Videos">
+      <!-- JS will inject cards -->
+    </section>
 
-// basic health
-app.get('/api/me', authMiddleware, (req, res) => {
-  const u = db.prepare('SELECT id,username FROM users WHERE id = ?').get(req.user.id);
-  res.json({ user: u });
-});
+    <footer style="color:var(--muted);margin-top:20px">
+      Built with care • Demo UI — replace media and data with your own content.
+    </footer>
+  </main>
+</div>
 
-// start
-app.listen(PORT, ()=>console.log('XEVideo running on',PORT));
-
-/*
-Notes / Next steps for production:
- - Offload video storage to cloud (S3), use signed URLs
- - Process thumbnails and transcode (FFmpeg) for multiple resolutions
- - Use a template engine or SPA for better UX
- - Add email verification, password reset
- - Add admin panel and moderation
- - Use queues for thumbnail/transcoding and CDN for streaming
-*/
-// ---- paste this block into server.js BEFORE app.listen(...) ----
-
-const topBannerHTML = `
-<div id="xev-top-banner" role="region" aria-label="Site news" style="font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
-  <div id="xev-top-banner-inner">
-    <button id="xev-banner-close" aria-label="Close banner">✕</button>
-    <a id="xev-banner-link" href="/sale" target="_self" rel="noopener noreferrer">
-      <div id="xev-banner-marquee">🔥 Special: This website is for sale — asking price $50,000,000. Click to view details.</div>
-    </a>
+<!-- Flash sale banner -->
+<div class="flash-banner" id="flashBanner" role="region" aria-label="Sale Banner" style="display:none">
+  <div class="flash-inner">
+    <div style="display:flex;gap:10px;align-items:center">
+      <strong style="color:#ffd166">🔥 For sale:</strong>
+      <div class="flash-text">This website is for sale — asking price <strong>$50,000,000</strong></div>
+    </div>
+    <div style="flex:1"></div>
+    <button class="flash-cta" id="flashContactBtn">Contact</button>
+    <button class="flash-close" id="flashClose" aria-label="Close">✕</button>
   </div>
 </div>
 
-<style>
-  #xev-top-banner {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(90deg,#111827,#0b1220);
-    color: #fff;
-    z-index: 99999;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-    padding: 6px 0;
-    font-size: 15px;
-  }
-  #xev-top-banner-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    position: relative;
-    padding: 4px 48px 4px 16px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-  }
-  #xev-banner-marquee {
-    white-space: nowrap;
-    display: inline-block;
-    will-change: transform;
-    animation: xev-scroll 18s linear infinite;
-    padding-right: 40px;
-  }
-  #xev-banner-link { color:inherit; text-decoration:none; display:block; width:100%;}
-  @keyframes xev-scroll {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
-  }
-  #xev-banner-close {
-    position: absolute;
-    right: 8px;
-    top: 4px;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px 8px;
-    opacity: .9;
-  }
-  /* push page content down so banner doesn't overlap */
-  body.xev-has-banner { padding-top: 48px !important; }
-  @media (max-width:600px){ #xev-top-banner-inner{padding-right:36px} body.xev-has-banner{padding-top:56px} }
-</style>
+<!-- Contact panel (in-page) -->
+<div class="contact-panel" id="contactPanel" aria-hidden="true">
+  <h3>Interested in buying?</h3>
+  <p style="color:var(--muted);margin:6px 0 12px">Asking price: <strong>$50,000,000</strong></p>
+  <div class="contact-row">
+    <div style="flex:1">
+      <div style="font-size:13px;color:var(--muted)">Contact email</div>
+      <div style="font-weight:700">k1000fish@gmail.com</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a class="mailto" href="mailto:k1000fish@gmail.com?subject=Inquiry%20about%20XEVideo" id="mailtoLink">Email seller</a>
+    <button style="background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted);padding:8px 10px;border-radius:8px;cursor:pointer" id="closeContact">Close</button>
+  </div>
+</div>
 
+<!-- Watch modal -->
+<div class="modal" id="watchModal" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="player" role="region" aria-label="Video player">
+    <div class="vtop">
+      <strong id="modalTitle">Playing video</strong>
+      <button id="closeModal" aria-label="Close player" style="background:transparent;border:0;color:#ddd;font-size:18px;cursor:pointer">✕</button>
+    </div>
+    <div id="playerArea">
+      <video id="playerVideo" controls preload="metadata" playsinline>
+        <source src="" type="video/mp4">
+        Your browser does not support HTML5 video.
+      </video>
+      <div class="controls">
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="actions">
+            <button id="likeBtn" title="Like">❤ <span id="likeCount">0</span></button>
+            <button id="shareBtn" title="Share">Share</button>
+            <button id="subBtn" title="Subscribe">Subscribe</button>
+          </div>
+        </div>
+        <div style="color:var(--muted)">Views: <span id="viewCount">0</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Data + Interactivity -->
 <script>
-  (function(){
-    try {
-      // hide if user already closed
-      if (localStorage.getItem('xev_banner_closed') === '1') return;
-      // when running on server-rendered pages, the banner will be injected by middleware below
-      // add close handler (delegated)
-      document.addEventListener('click', function(e){
-        if (e.target && e.target.id === 'xev-banner-close') {
-          document.getElementById('xev-top-banner').style.display = 'none';
-          document.body.classList.remove('xev-has-banner');
-          localStorage.setItem('xev_banner_closed','1');
-        }
-      }, {passive:true});
-      // when banner exists, add body class to push content down
-      function addBodyClassIfBanner(){
-        if (document.getElementById('xev-top-banner')) document.body.classList.add('xev-has-banner');
-      }
-      // try immediately and also on DOMContentLoaded
-      addBodyClassIfBanner();
-      document.addEventListener('DOMContentLoaded', addBodyClassIfBanner);
-    } catch(err){ console.error('Banner init error', err) }
-  })();
-</script>
-`;
+(function(){
+  // sample dataset (in real use replace with dynamic data)
+  const VIDEOS = [
+    { id:'v1', title:'Day 1 exploring in North Goa | travel fun', creator:'Vedant Chakane', duration:'31:17', views:50, src:'', color:'#2a9d8f'},
+    { id:'v2', title:'Weight Loss: 5 steps to shed 42 kg', creator:'Saachi', duration:'16:44', views:46000, src:'', color:'#e76f51'},
+    { id:'v3', title:'Faceless YouTube Automation — case study', creator:'Praveen', duration:'28:12', views:91000, src:'', color:'#264653'},
+    { id:'v4', title:'DJI Zenmuse L3 — Review', creator:'DJI Enterprise', duration:'4:25', views:3600000, src:'', color:'#2b2d42'},
+    { id:'v5', title:'Compact Home in Kolhapur | Buildofy', creator:'Buildofy', duration:'5:58', views:139000, src:'', color:'#8ecae6'},
+    { id:'v6', title:'DJI Mic Mini Unboxing & Test', creator:'Gourav Gupta', duration:'4:49', views:69, src:'', color:'#ffd166'},
+    // more can be added...
+  ];
 
-// middleware: inject the banner HTML into any HTML response (no need to change page templates)
-app.use((req, res, next) => {
-  // wrap res.send to inject banner when sending HTML
-  const oldSend = res.send;
-  res.send = function(body) {
-    try {
-      // only inject into string HTML responses containing <body>
-      if (typeof body === 'string' && body.toLowerCase().includes('<body')) {
-        // don't inject into API or JSON responses accidentally
-        if (body.trim().startsWith('{') || body.trim().startsWith('[')) {
-          return oldSend.call(this, body);
-        }
-        // insert banner right after <body...>
-        body = body.replace(/<body([^>]*)>/i, `<body$1>\\n${topBannerHTML}`);
-      }
-    } catch (e) {
-      // fail silently and continue sending original body
-      console.error('Banner injection failed:', e);
+  // create video cards
+  const grid = document.getElementById('videoGrid');
+  function formatCount(n){
+    if(n>=1e6) return (n/1e6).toFixed(1)+'M';
+    if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+    return n;
+  }
+  function makeCard(v){
+    const card = document.createElement('article');
+    card.className='card';
+    card.innerHTML = `
+      <div class="thumb" data-id="${v.id}" style="background:linear-gradient(180deg, ${v.color}, #040404);cursor:pointer">
+        <div style="padding-left:8px;color:#000;font-weight:700;background:rgba(255,255,255,0.06);border-radius:6px;padding:6px 8px">${v.creator}</div>
+        <div class="duration">${v.duration}</div>
+      </div>
+      <div class="meta">
+        <div class="avatar" aria-hidden="true"></div>
+        <div class="info">
+          <div class="title">${escapeHtml(v.title)}</div>
+          <div class="sub">${escapeHtml(v.creator)} • ${formatCount(v.views)} views</div>
+        </div>
+        <div class="dots">•••</div>
+      </div>
+    `;
+    // click thumb opens player
+    card.querySelector('.thumb').addEventListener('click', ()=>openPlayer(v));
+    return card;
+  }
+  VIDEOS.forEach(v=>grid.appendChild(makeCard(v)));
+
+  // search
+  const searchInput = document.getElementById('searchInput');
+  document.getElementById('searchBtn').addEventListener('click', doSearch);
+  searchInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSearch(); });
+  function doSearch(){
+    const q = (searchInput.value || '').toLowerCase().trim();
+    grid.innerHTML='';
+    const results = VIDEOS.filter(v => v.title.toLowerCase().includes(q) || v.creator.toLowerCase().includes(q));
+    (results.length?results:VIDEOS).forEach(v=>grid.appendChild(makeCard(v)));
+  }
+
+  // player interactions
+  const modal = document.getElementById('watchModal');
+  const playerVideo = document.getElementById('playerVideo');
+  const modalTitle = document.getElementById('modalTitle');
+  const likeBtn = document.getElementById('likeBtn');
+  const subBtn = document.getElementById('subBtn');
+  const shareBtn = document.getElementById('shareBtn');
+  const viewCountEl = document.getElementById('viewCount');
+  const likeCountEl = document.getElementById('likeCount');
+
+  // simple localStorage helpers
+  function getLikes(){ return JSON.parse(localStorage.getItem('xev_likes')||'{}') }
+  function setLikes(o){ localStorage.setItem('xev_likes', JSON.stringify(o)) }
+  function getSubs(){ return JSON.parse(localStorage.getItem('xev_subs')||'[]') }
+  function setSubs(a){ localStorage.setItem('xev_subs', JSON.stringify(a)) }
+
+  let currentVideo = null;
+  function openPlayer(v){
+    currentVideo = v;
+    modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+    modalTitle.textContent = v.title;
+    // set sample source: there is no real file here — show placeholder color video using CSS background,
+    // but to make HTML5 video controls present, we set src to empty and use poster approach.
+    playerVideo.src = ''; // none by default - use placeholder poster effect below
+    playerVideo.poster = ''; // no poster
+    // show counts from dataset and storage
+    viewCountEl.textContent = formatCount(v.views + 1);
+    const likes = getLikes();
+    const count = likes[v.id] ? 1 : 0;
+    likeCountEl.textContent = count;
+    subBtn.textContent = (getSubs().includes(v.creator) ? 'Subscribed' : 'Subscribe');
+
+    // replace video area with a faux large thumbnail if no src (to avoid broken player)
+    if(!v.src){
+      // create an overlay inside player to show a big preview and fake play button
+      const playerArea = document.getElementById('playerArea');
+      // remove existing preview if any
+      const existingPreview = document.getElementById('fakePreview');
+      if(existingPreview) existingPreview.remove();
+      const preview = document.createElement('div');
+      preview.id = 'fakePreview';
+      preview.style.cssText = 'width:100%;height:480px;background:linear-gradient(180deg,'+v.color+',#000);display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;';
+      preview.innerHTML = `<div style="text-align:center"><div style="font-weight:800;font-size:20px;margin-bottom:6px">${escapeHtml(v.title)}</div><div style="opacity:.9">${escapeHtml(v.creator)} • ${v.duration}</div><div style="margin-top:18px"><button id="playFake" style="background:#fff;border-radius:999px;padding:12px 20px;border:none;cursor:pointer">▶ Play</button></div></div>`;
+      playerArea.insertBefore(preview, playerVideo);
+      // hide actual video element
+      playerVideo.style.display='none';
+      // play fake
+      preview.querySelector('#playFake').addEventListener('click', ()=>{
+        alert('Demo playback — in production replace video src in dataset with a real .mp4 URL.');
+      });
+    } else {
+      // if v.src exists, show actual video
+      const existingPreview = document.getElementById('fakePreview');
+      if(existingPreview) existingPreview.remove();
+      playerVideo.style.display='block';
+      playerVideo.src = v.src;
+      playerVideo.play().catch(()=>{});
     }
-    return oldSend.call(this, body);
-  };
-  next();
-});
+  }
 
-// optional: a simple sale details route (so /sale opens a page)
-app.get('/sale', (req, res) => {
-  res.send(`<!doctype html><html><head><meta charset="utf-8"><title>Site for sale - XEVideo</title></head><body>
-    <h1>XEVideo — Site for sale</h1>
-    <p>Asking price: <strong>$50,000,000</strong></p>
-    <p>Contact: <a href="mailto:sales@xevideo.com">sales@xevideo.com</a></p>
-    <p><a href="/">Back to home</a></p>
-  </body></html>`);
-});
+  document.getElementById('closeModal').addEventListener('click', closeModal);
+  function closeModal(){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+    playerVideo.pause(); playerVideo.src = '';
+  }
 
-// ---- end of paste block ----
+  // likes
+  likeBtn.addEventListener('click', ()=>{
+    if(!currentVideo) return;
+    const likes = getLikes();
+    if(likes[currentVideo.id]) {
+      delete likes[currentVideo.id];
+    } else {
+      likes[currentVideo.id] = true;
+    }
+    setLikes(likes);
+    likeCountEl.textContent = getLikes()[currentVideo.id] ? 1 : 0;
+  });
+
+  // subscribe by creator name (simple)
+  subBtn.addEventListener('click', ()=>{
+    if(!currentVideo) return;
+    const subs = getSubs();
+    if(subs.includes(currentVideo.creator)){
+      const idx = subs.indexOf(currentVideo.creator); subs.splice(idx,1);
+    } else {
+      subs.push(currentVideo.creator);
+    }
+    setSubs(subs);
+    subBtn.textContent = subs.includes(currentVideo.creator) ? 'Subscribed' : 'Subscribe';
+    subBtn.style.background = subs.includes(currentVideo.creator) ? '#fff' : 'transparent';
+    subBtn.style.color = subs.includes(currentVideo.creator) ? '#00110a' : '#fff';
+  });
+
+  // share button copies link and shows a tiny feedback
+  shareBtn.addEventListener('click', async ()=>{
+    if(!currentVideo) return;
+    const url = location.href.split('#')[0] + '#video=' + currentVideo.id;
+    try{ await navigator.clipboard.writeText(url); alert('Share link copied'); } catch(e){ prompt('Copy this link', url); }
+  });
+
+  // banner behavior
+  const flash = document.getElementById('flashBanner');
+  const flashClose = document.getElementById('flashClose');
+  const flashBtn = document.getElementById('flashContactBtn');
+  const contactPanel = document.getElementById('contactPanel');
+  const closeContact = document.getElementById('closeContact');
+  const mailto = document.getElementById('mailtoLink');
+
+  // show banner if not closed in localStorage
+  if(localStorage.getItem('xev_banner_closed') !== '1'){
+    flash.style.display='flex';
+  }
+  flashClose.addEventListener('click', ()=>{ flash.style.display='none'; localStorage.setItem('xev_banner_closed','1'); });
+  flashBtn.addEventListener('click', ()=>{ contactPanel.classList.add('open'); contactPanel.setAttribute('aria-hidden','false'); });
+  closeContact.addEventListener('click', ()=>{ contactPanel.classList.remove('open'); contactPanel.setAttribute('aria-hidden','true'); });
+
+  // deep link open video from hash like #video=v3
+  function handleHash(){
+    const h = location.hash || '';
+    if(h.startsWith('#video=')){
+      const id = h.split('=')[1];
+      const v = VIDEOS.find(x=>x.id===id);
+      if(v) openPlayer(v);
+    }
+  }
+  window.addEventListener('hashchange', handleHash);
+  handleHash();
+
+  // small helper
+  function escapeHtml(s){ return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+})();
+</script>
+</body>
+</html>
