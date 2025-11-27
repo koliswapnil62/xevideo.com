@@ -1,210 +1,531 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XEVIDEO.COM - Premium Domain for Sale</title>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7915645072408081"
-     crossorigin="anonymous"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+/*
+XEVideo - Single-file Node.js YouTube-like app
+Filename: server.js
+Purpose: Minimal but functional YouTube-like website supporting:
+ - User register / login (JWT)
+ - Video upload (multer) stored on disk
+ - Video streaming with Range headers
+ - Like/unlike, comments
+ - Subscribe/unsubscribe
+ - Search, share links
+ - Simple frontend pages rendered via templates in routes (no template engine required)
 
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
-      background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/1200px-World_map_-_low_resolution.svg.png') no-repeat center center fixed;
-      background-size: cover;
-      color: white;
-      text-align: center;
-      backdrop-filter: brightness(0.3);
-    }
+This is one-file app. Also included below is a package.json block and README usage instructions.
 
-    .overlay {
-      background: rgba(0, 0, 0, 0.6);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 30px;
-    }
+IMPORTANT: This is a starter clone — not production-ready. For production, add input validation, rate-limiting,
+CSRF protection, email verification, cloud storage (S3), HTTPS, streaming optimizations, background processing,
+and stronger auth/session handling.
 
-    h1 {
-      font-size: 3em;
-      color: #ff007f;
-      letter-spacing: 2px;
-      margin-bottom: 10px;
-    }
-
-    h2 {
-      font-size: 1.5em;
-      margin-top: 0;
-    }
-
-    p {
-      font-size: 1.1em;
-      max-width: 700px;
-      margin: 15px auto;
-      line-height: 1.6;
-    }
-
-    .price {
-      font-size: 2em;
-      color: #ff007f;
-      margin-top: 10px;
-    }
-
-    .contact {
-      margin-top: 25px;
-      font-size: 1.2em;
-    }
-
-    a {
-      color: #00ffff;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    canvas {
-      margin-top: 30px;
-    }
-
-    footer {
-      margin-top: 40px;
-      font-size: 0.9em;
-      opacity: 0.7;
-    }
-    <style>
-.play-section {
-  text-align: center;
-  margin: 30px 0;
+--- package.json ---
+{
+  "name": "xevideo",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^8.0.0",
+    "bcrypt": "^5.1.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "mime": "^3.0.0",
+    "multer": "^1.4.5"
+  }
 }
 
-.play-btn {
-  display: inline-block;
-  padding: 12px 25px;
-  background-color: #ff5722;
-  color: #fff;
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 10px;
-  text-decoration: none;
-  transition: background 0.3s ease;
+--- How to use ---
+1. Ensure Node.js >= 16 is installed.
+2. Create a directory, save this file as server.js and create package.json using the block above.
+3. npm install
+4. Create uploads/ and thumbs/ directories: mkdir uploads thumbs
+5. Set env var JWT_SECRET (or it will default to 'change_this_secret')
+6. node server.js
+7. Open http://localhost:3000 and register a user.
+
+--- server.js code starts below ---
+*/
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const Database = require('better-sqlite3');
+const mime = require('mime');
+const cors = require('cors');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
+
+// storage
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR);
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, UPLOAD_DIR);
+  },
+  filename: function (req, file, cb) {
+    // unique filename
+    const ext = path.extname(file.originalname);
+    const id = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, `${id}${ext}`);
+  }
+});
+const upload = multer({ storage });
+
+app.use(cors());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/uploads', express.static(UPLOAD_DIR));
+app.use('/static', express.static(path.join(__dirname, 'static')));
+
+// simple DB
+const db = new Database(path.join(__dirname, 'xevideo.db'));
+
+// init tables
+db.exec(`
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  username TEXT UNIQUE,
+  password_hash TEXT,
+  created_at INTEGER
+);
+CREATE TABLE IF NOT EXISTS videos (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  title TEXT,
+  description TEXT,
+  filename TEXT,
+  original_name TEXT,
+  mime TEXT,
+  views INTEGER DEFAULT 0,
+  created_at INTEGER,
+  FOREIGN KEY(user_id) REFERENCES users(id)
+);
+CREATE TABLE IF NOT EXISTS likes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  video_id INTEGER
+);
+CREATE TABLE IF NOT EXISTS comments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  video_id INTEGER,
+  text TEXT,
+  created_at INTEGER
+);
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  subscriber_id INTEGER,
+  channel_id INTEGER
+);
+`);
+
+// helper functions
+function createToken(user) {
+  return jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
 }
 
-.play-btn:hover {
-  background-color: #e64a19;
+function authMiddleware(req, res, next) {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'Missing auth' });
+  const parts = auth.split(' ');
+  if (parts.length !== 2) return res.status(401).json({ error: 'Bad auth' });
+  const token = parts[1];
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.user = payload;
+    next();
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
 }
-</style>
-</head>
-<body>
-  <div class="overlay">
-    <h1>WWW.XEVIDEO.COM</h1>
-    <h2>Premium Domain for Sale</h2>
-    <p><strong>Price:</strong> $50,000,000 USD</p>
-    <p>This is a highly valuable premium domain with massive potential to attract traffic and generate exceptional future profits. Perfect for video, entertainment, or tech projects.</p>
-    <p class="price">🚀 Reserve your future today.</p>
 
-    <div class="contact">
-      <p><strong>Only genuine buyers may contact:</strong></p>
-      <p>Email: <a href="mailto:k1000fish@gmail.com">k1000fish@gmail.com</a></p>
-      <p>No nonsense inquiries, please.</p>
+// Routes: simple frontend and API
+app.get('/', (req, res) => {
+  // show a simple homepage listing recent videos
+  const videos = db.prepare('SELECT v.*, u.username FROM videos v JOIN users u ON u.id = v.user_id ORDER BY created_at DESC LIMIT 30').all();
+  let html = `<!doctype html><html><head><meta charset="utf-8"><title>XEVideo</title></head><body>
+  <h1>XEVideo - Home</h1>
+  <p><a href="/upload.html">Upload</a> • <a href="/register.html">Register</a> • <a href="/login.html">Login</a></p>
+  <div>`;
+  for (const v of videos) {
+    html += `<div style="margin:12px;padding:8px;border-bottom:1px solid #ddd;"><a href="/watch/${v.id}"><strong>${escapeHtml(v.title)}</strong></a>
+    <div>by ${escapeHtml(v.username)} • ${v.views} views</div>
+    <video width="320" height="180" controls preload="metadata">
+      <source src="/stream/${v.id}" type="${v.mime}">
+      Your browser does not support the video tag.
+    </video>
+    </div>`;
+  }
+  html += `</div>
+  <script>/* small client scripts could go here */</script>
+  </body></html>`;
+  res.send(html);
+});
+
+// serve simple static pages for register/login/upload
+app.get('/register.html', (req, res) => {
+  res.send(htmlRegister());
+});
+app.get('/login.html', (req, res) => {
+  res.send(htmlLogin());
+});
+app.get('/upload.html', (req, res) => {
+  res.send(htmlUpload());
+});
+
+// API: register
+app.post('/api/register', async (req, res) => {
+  const { username, password } = req.body;
+  if (!username || !password) return res.status(400).json({ error: 'Missing fields' });
+  const hash = await bcrypt.hash(password, 10);
+  try {
+    const info = db.prepare('INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)').run(username, hash, Date.now());
+    const user = { id: info.lastInsertRowid, username };
+    const token = createToken(user);
+    res.json({ token, user });
+  } catch (e) {
+    res.status(400).json({ error: 'Username taken' });
+  }
+});
+
+// API: login
+app.post('/api/login', async (req, res) => {
+  const { username, password } = req.body;
+  const row = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+  if (!row) return res.status(400).json({ error: 'Invalid' });
+  const ok = await bcrypt.compare(password, row.password_hash);
+  if (!ok) return res.status(400).json({ error: 'Invalid' });
+  const user = { id: row.id, username: row.username };
+  const token = createToken(user);
+  res.json({ token, user });
+});
+
+// API: upload video
+app.post('/api/upload', authMiddleware, upload.single('video'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Missing file' });
+  const title = req.body.title || req.file.originalname;
+  const description = req.body.description || '';
+  const mimeType = req.file.mimetype || mime.getType(req.file.originalname) || 'video/mp4';
+  const info = db.prepare('INSERT INTO videos (user_id, title, description, filename, original_name, mime, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(req.user.id, title, description, req.file.filename, req.file.originalname, mimeType, Date.now());
+  res.json({ ok: true, videoId: info.lastInsertRowid });
+});
+
+// Serve watch page
+app.get('/watch/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const v = db.prepare('SELECT v.*, u.username FROM videos v JOIN users u ON u.id = v.user_id WHERE v.id = ?').get(id);
+  if (!v) return res.status(404).send('Not found');
+  // increment view (naive)
+  db.prepare('UPDATE videos SET views = views + 1 WHERE id = ?').run(id);
+  const comments = db.prepare('SELECT c.*, u.username FROM comments c JOIN users u ON u.id = c.user_id WHERE c.video_id = ? ORDER BY c.created_at DESC').all(id);
+  const likeCount = db.prepare('SELECT COUNT(*) as c FROM likes WHERE video_id = ?').get(id).c;
+  let html = `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(v.title)}</title></head><body>
+    <a href="/">Home</a> | <a href="/upload.html">Upload</a>
+    <h1>${escapeHtml(v.title)}</h1>
+    <div>By ${escapeHtml(v.username)} • ${v.views + 1} views</div>
+    <video id="player" width="720" height="405" controls>
+      <source src="/stream/${v.id}" type="${v.mime}">
+    </video>
+    <div>
+      <button id="likeBtn">Like (${likeCount})</button>
+      <button id="subscribeBtn">Subscribe</button>
+      <button id="shareBtn">Share</button>
     </div>
-
-    <!-- Analog Clock -->
-    <canvas id="clockCanvas" width="200" height="200"></canvas>
-
-    <div class="play-section">
-  <a href="game.html" class="play-btn">🎮 Play Now</a>
-</div>
-    <footer>
-      <p>© 2025 XEVIDEO.COM | Premium Digital Asset</p>
-    </footer>
-  </div>
-
-  <script>
-    const canvas = document.getElementById("clockCanvas");
-    const ctx = canvas.getContext("2d");
-    const radius = canvas.height / 2;
-    ctx.translate(radius, radius);
-
-    function drawClock() {
-      drawFace(ctx, radius);
-      drawNumbers(ctx, radius);
-      drawTime(ctx, radius);
-    }
-
-    function drawFace(ctx, radius) {
-      let grad;
-      ctx.beginPath();
-      ctx.arc(0, 0, radius, 0, 2 * Math.PI);
-      ctx.fillStyle = "black";
-      ctx.fill();
-      grad = ctx.createRadialGradient(0, 0, radius * 0.95, 0, 0, radius * 1.05);
-      grad.addColorStop(0, '#333');
-      grad.addColorStop(0.5, 'black');
-      grad.addColorStop(1, '#333');
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = radius * 0.1;
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(0, 0, radius * 0.1, 0, 2 * Math.PI);
-      ctx.fillStyle = '#ff007f';
-      ctx.fill();
-    }
-
-    function drawNumbers(ctx, radius) {
-      let ang;
-      let num;
-      ctx.font = radius * 0.15 + "px poppins";
-      ctx.textBaseline = "middle";
-      ctx.textAlign = "center";
-      for (num = 1; num <= 12; num++) {
-        ang = num * Math.PI / 6;
-        ctx.rotate(ang);
-        ctx.translate(0, -radius * 0.85);
-        ctx.rotate(-ang);
-        ctx.fillStyle = "#fff";
-        ctx.fillText(num.toString(), 0, 0);
-        ctx.rotate(ang);
-        ctx.translate(0, radius * 0.85);
-        ctx.rotate(-ang);
+    <h3>Description</h3>
+    <p>${escapeHtml(v.description)}</p>
+    <h3>Comments</h3>
+    <div id="comments">`;
+  for (const c of comments) {
+    html += `<div style="border-top:1px solid #eee;padding:6px;"><strong>${escapeHtml(c.username)}</strong>: ${escapeHtml(c.text)}</div>`;
+  }
+  html += `</div>
+    <div id="commentForm">
+      <textarea id="commentText" rows="3" cols="60"></textarea><br>
+      <button id="postComment">Post Comment</button>
+    </div>
+    <script>
+      // minimal client logic - uses token in localStorage
+      function getAuth(){return localStorage.getItem('xev_token');}
+      document.getElementById('likeBtn').onclick = async function(){
+        const token = getAuth();
+        if(!token){alert('Please login'); return}
+        const res = await fetch('/api/like/${v.id}',{method:'POST',headers:{'Authorization':'Bearer '+token}});
+        const j = await res.json(); alert(j.ok ? 'Liked' : (j.error||'Error'));
+        location.reload();
       }
-    }
+      document.getElementById('postComment').onclick = async function(){
+        const token = getAuth(); if(!token){alert('Login');return}
+        const text = document.getElementById('commentText').value.trim(); if(!text) return alert('Empty');
+        const res = await fetch('/api/comment/${v.id}',{method:'POST',headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({text})});
+        const j = await res.json(); if(j.ok) location.reload(); else alert(j.error||'err');
+      }
+      document.getElementById('shareBtn').onclick = function(){
+        const url = location.href; navigator.clipboard.writeText(url); alert('Link copied');
+      }
+      document.getElementById('subscribeBtn').onclick = async function(){
+        const token = getAuth(); if(!token){alert('Login');return}
+        const res = await fetch('/api/subscribe/${v.user_id}',{method:'POST',headers:{'Authorization':'Bearer '+token}});
+        const j = await res.json(); alert(j.ok ? 'Subscribed' : (j.error||'Error'));
+      }
+    </script>
+  </body></html>`;
+  res.send(html);
+});
 
-    function drawTime(ctx, radius) {
-      let now = new Date();
-      let hour = now.getHours();
-      let minute = now.getMinutes();
-      let second = now.getSeconds();
-      hour = hour % 12;
-      hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
-      drawHand(ctx, hour, radius * 0.5, radius * 0.07);
-      minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
-      drawHand(ctx, minute, radius * 0.8, radius * 0.07);
-      second = (second * Math.PI / 30);
-      drawHand(ctx, second, radius * 0.9, radius * 0.02, "#ff007f");
-    }
+// stream route (supports range)
+app.get('/stream/:id', (req, res) => {
+  const id = Number(req.params.id);
+  const v = db.prepare('SELECT * FROM videos WHERE id = ?').get(id);
+  if (!v) return res.status(404).send('Video not found');
+  const file = path.join(UPLOAD_DIR, v.filename);
+  const stat = fs.statSync(file);
+  const fileSize = stat.size;
+  const range = req.headers.range;
+  if (range) {
+    const parts = range.replace(/bytes=/, '').split('-');
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+    const chunksize = (end - start) + 1;
+    const stream = fs.createReadStream(file, { start, end });
+    res.writeHead(206, {
+      'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+      'Accept-Ranges': 'bytes',
+      'Content-Length': chunksize,
+      'Content-Type': v.mime || 'video/mp4'
+    });
+    stream.pipe(res);
+  } else {
+    res.writeHead(200, { 'Content-Length': fileSize, 'Content-Type': v.mime || 'video/mp4' });
+    fs.createReadStream(file).pipe(res);
+  }
+});
 
-    function drawHand(ctx, pos, length, width, color = "#fff") {
-      ctx.beginPath();
-      ctx.lineWidth = width;
-      ctx.lineCap = "round";
-      ctx.strokeStyle = color;
-      ctx.moveTo(0, 0);
-      ctx.rotate(pos);
-      ctx.lineTo(0, -length);
-      ctx.stroke();
-      ctx.rotate(-pos);
-    }
+// like
+app.post('/api/like/:id', authMiddleware, (req, res) => {
+  const userId = req.user.id; const vid = Number(req.params.id);
+  const exists = db.prepare('SELECT * FROM likes WHERE user_id = ? AND video_id = ?').get(userId, vid);
+  if (exists) {
+    db.prepare('DELETE FROM likes WHERE id = ?').run(exists.id);
+    return res.json({ ok: true, action: 'unliked' });
+  }
+  db.prepare('INSERT INTO likes (user_id, video_id) VALUES (?,?)').run(userId, vid);
+  res.json({ ok: true, action: 'liked' });
+});
 
-    setInterval(drawClock, 1000);
-    drawClock();
-  </script>
-</body>
-</html>
+// comment
+app.post('/api/comment/:id', authMiddleware, (req, res) => {
+  const userId = req.user.id; const vid = Number(req.params.id); const text = req.body.text;
+  if (!text) return res.status(400).json({ error: 'Empty' });
+  db.prepare('INSERT INTO comments (user_id, video_id, text, created_at) VALUES (?,?,?,?)').run(userId, vid, text, Date.now());
+  res.json({ ok: true });
+});
+
+// subscribe
+app.post('/api/subscribe/:channelId', authMiddleware, (req, res) => {
+  const subscriber = req.user.id; const channel = Number(req.params.channelId);
+  if (subscriber === channel) return res.status(400).json({ error: 'Cannot subscribe to yourself' });
+  const exists = db.prepare('SELECT * FROM subscriptions WHERE subscriber_id = ? AND channel_id = ?').get(subscriber, channel);
+  if (exists) {
+    db.prepare('DELETE FROM subscriptions WHERE id = ?').run(exists.id);
+    return res.json({ ok: true, action: 'unsubscribed' });
+  }
+  db.prepare('INSERT INTO subscriptions (subscriber_id, channel_id) VALUES (?,?)').run(subscriber, channel);
+  res.json({ ok: true, action: 'subscribed' });
+});
+
+// search
+app.get('/search', (req, res) => {
+  const q = (req.query.q || '').trim();
+  if (!q) return res.redirect('/');
+  const rows = db.prepare("SELECT v.*, u.username FROM videos v JOIN users u ON u.id=v.user_id WHERE v.title LIKE '%' || ? || '%' OR v.description LIKE '%' || ? || '%' ORDER BY v.created_at DESC").all(q, q);
+  let html = '<!doctype html><html><head><meta charset="utf-8"><title>Search</title></head><body><a href="/">Home</a><h1>Search results for '+escapeHtml(q)+'</h1>';
+  for (const v of rows) html += `<div><a href="/watch/${v.id}">${escapeHtml(v.title)}</a> by ${escapeHtml(v.username)}</div>`;
+  html += '</body></html>';
+  res.send(html);
+});
+
+// helper safe escape
+function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Simple static pages content generators
+function htmlRegister(){
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Register - XEVideo</title></head><body>
+    <h1>Register</h1>
+    <form id="f"><input name="username" placeholder="username"><br><input name="password" type="password" placeholder="password"><br><button>Register</button></form>
+    <script>
+      document.getElementById('f').onsubmit = async function(e){e.preventDefault(); const f=new FormData(e.target); const res = await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:f.get('username'),password:f.get('password')})}); const j=await res.json(); if(j.token){localStorage.setItem('xev_token',j.token); alert('Registered'); location.href='/'} else alert(j.error||JSON.stringify(j));}
+    </script>
+  </body></html>`;
+}
+function htmlLogin(){
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Login - XEVideo</title></head><body>
+    <h1>Login</h1>
+    <form id="f"><input name="username" placeholder="username"><br><input name="password" type="password" placeholder="password"><br><button>Login</button></form>
+    <script>
+      document.getElementById('f').onsubmit = async function(e){e.preventDefault(); const f=new FormData(e.target); const res = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:f.get('username'),password:f.get('password')})}); const j=await res.json(); if(j.token){localStorage.setItem('xev_token',j.token); alert('Logged in'); location.href='/'} else alert(j.error||JSON.stringify(j));}
+    </script>
+  </body></html>`;
+}
+function htmlUpload(){
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Upload - XEVideo</title></head><body>
+    <h1>Upload Video</h1>
+    <form id="f"><input name="title" placeholder="Title"><br><textarea name="description" placeholder="Description"></textarea><br><input type="file" name="video"><br><button>Upload</button></form>
+    <script>
+      document.getElementById('f').onsubmit = async function(e){ e.preventDefault(); const token = localStorage.getItem('xev_token'); if(!token){return alert('Login first')}
+        const fd = new FormData(e.target); const res = await fetch('/api/upload',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd}); const j=await res.json(); if(j.ok){alert('Uploaded'); location.href='/watch/'+j.videoId} else alert(j.error||JSON.stringify(j)); }
+    </script>
+  </body></html>`;
+}
+
+// basic health
+app.get('/api/me', authMiddleware, (req, res) => {
+  const u = db.prepare('SELECT id,username FROM users WHERE id = ?').get(req.user.id);
+  res.json({ user: u });
+});
+
+// start
+app.listen(PORT, ()=>console.log('XEVideo running on',PORT));
+
+/*
+Notes / Next steps for production:
+ - Offload video storage to cloud (S3), use signed URLs
+ - Process thumbnails and transcode (FFmpeg) for multiple resolutions
+ - Use a template engine or SPA for better UX
+ - Add email verification, password reset
+ - Add admin panel and moderation
+ - Use queues for thumbnail/transcoding and CDN for streaming
+*/
+// ---- paste this block into server.js BEFORE app.listen(...) ----
+
+const topBannerHTML = `
+<div id="xev-top-banner" role="region" aria-label="Site news" style="font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
+  <div id="xev-top-banner-inner">
+    <button id="xev-banner-close" aria-label="Close banner">✕</button>
+    <a id="xev-banner-link" href="/sale" target="_self" rel="noopener noreferrer">
+      <div id="xev-banner-marquee">🔥 Special: This website is for sale — asking price $50,000,000. Click to view details.</div>
+    </a>
+  </div>
+</div>
+
+<style>
+  #xev-top-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg,#111827,#0b1220);
+    color: #fff;
+    z-index: 99999;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    padding: 6px 0;
+    font-size: 15px;
+  }
+  #xev-top-banner-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    padding: 4px 48px 4px 16px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  #xev-banner-marquee {
+    white-space: nowrap;
+    display: inline-block;
+    will-change: transform;
+    animation: xev-scroll 18s linear infinite;
+    padding-right: 40px;
+  }
+  #xev-banner-link { color:inherit; text-decoration:none; display:block; width:100%;}
+  @keyframes xev-scroll {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+  }
+  #xev-banner-close {
+    position: absolute;
+    right: 8px;
+    top: 4px;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px 8px;
+    opacity: .9;
+  }
+  /* push page content down so banner doesn't overlap */
+  body.xev-has-banner { padding-top: 48px !important; }
+  @media (max-width:600px){ #xev-top-banner-inner{padding-right:36px} body.xev-has-banner{padding-top:56px} }
+</style>
+
+<script>
+  (function(){
+    try {
+      // hide if user already closed
+      if (localStorage.getItem('xev_banner_closed') === '1') return;
+      // when running on server-rendered pages, the banner will be injected by middleware below
+      // add close handler (delegated)
+      document.addEventListener('click', function(e){
+        if (e.target && e.target.id === 'xev-banner-close') {
+          document.getElementById('xev-top-banner').style.display = 'none';
+          document.body.classList.remove('xev-has-banner');
+          localStorage.setItem('xev_banner_closed','1');
+        }
+      }, {passive:true});
+      // when banner exists, add body class to push content down
+      function addBodyClassIfBanner(){
+        if (document.getElementById('xev-top-banner')) document.body.classList.add('xev-has-banner');
+      }
+      // try immediately and also on DOMContentLoaded
+      addBodyClassIfBanner();
+      document.addEventListener('DOMContentLoaded', addBodyClassIfBanner);
+    } catch(err){ console.error('Banner init error', err) }
+  })();
+</script>
+`;
+
+// middleware: inject the banner HTML into any HTML response (no need to change page templates)
+app.use((req, res, next) => {
+  // wrap res.send to inject banner when sending HTML
+  const oldSend = res.send;
+  res.send = function(body) {
+    try {
+      // only inject into string HTML responses containing <body>
+      if (typeof body === 'string' && body.toLowerCase().includes('<body')) {
+        // don't inject into API or JSON responses accidentally
+        if (body.trim().startsWith('{') || body.trim().startsWith('[')) {
+          return oldSend.call(this, body);
+        }
+        // insert banner right after <body...>
+        body = body.replace(/<body([^>]*)>/i, `<body$1>\\n${topBannerHTML}`);
+      }
+    } catch (e) {
+      // fail silently and continue sending original body
+      console.error('Banner injection failed:', e);
+    }
+    return oldSend.call(this, body);
+  };
+  next();
+});
+
+// optional: a simple sale details route (so /sale opens a page)
+app.get('/sale', (req, res) => {
+  res.send(`<!doctype html><html><head><meta charset="utf-8"><title>Site for sale - XEVideo</title></head><body>
+    <h1>XEVideo — Site for sale</h1>
+    <p>Asking price: <strong>$50,000,000</strong></p>
+    <p>Contact: <a href="mailto:sales@xevideo.com">sales@xevideo.com</a></p>
+    <p><a href="/">Back to home</a></p>
+  </body></html>`);
+});
+
+// ---- end of paste block ----
